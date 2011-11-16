@@ -1,6 +1,6 @@
 .SUFFIXES: .tex .dvi .ps .pdf
 
-all: censored_catalog.pdf
+all: ms.pdf
 
 %.pdf: %.tex
 	pdflatex $<
