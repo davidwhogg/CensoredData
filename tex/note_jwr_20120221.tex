@@ -1,0 +1,249 @@
+% Define the document class. aastex for manuscript preparation, emulateapj for making it look polished.
+% \documentclass[12pt,preprint2]{aastex}
+%\documentclass[12pt,a4paper, iop,onecolumn,numberedappendix]{emulateapj}
+\documentclass[12pt,preprint]{aastex}
+
+% Import the natbib package for bibliography inclusion. To get it to work right, first typeset the bibliography (BibTex), Command-Shift-B.
+% Then, typeset the document with LaTeX, Command-Shift-L or just Command-T.
+% To get proper reference citations using aastex (preprint manuscripts), first typeset as emulateapj with BibTex to create the BibTex 
+% files and then typeset again as aastex to get the manuscript with references.
+\usepackage{natbib}
+\usepackage{epsfig,graphicx,color}
+\usepackage{longtable}
+
+\bibliographystyle{apj}
+% A few colors to replace the defaults for certain link types
+\definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
+\definecolor{darkorange}{rgb}{.71,0.21,0.01}
+\definecolor{darkgreen}{rgb}{.12,.54,.11}
+
+%-----------------------------------------------------------------------------
+% The hyperref package gives us a pdf with properly built
+% internal navigation ('pdf bookmarks' for the table of contents,
+% internal cross-reference links, web links for URLs, etc.)
+\usepackage{hyperref}
+\hypersetup{pdftex,  % needed for pdflatex
+  breaklinks=true,  % so long urls are correctly broken across lines
+  colorlinks=true,
+  urlcolor=blue,
+  linkcolor=darkorange,
+  citecolor=darkgreen,
+  }
+
+%Define this shorthand for scientific notation.
+\newcommand{\expnt}[2]{\ensuremath{#1 \times 10^{#2}}}   % scientific notation
+\newcommand{\x}{{\bf x}}
+\newcommand{\X}{{\bf X}}
+\newcommand{\y}{{\bf y}}
+\newcommand{\z}{{\bf z}}
+\newcommand{\new}{red}
+\newcommand{\ptr}{p_{\rm tr}}
+\newcommand{\pte}{p_{\rm te}}
+\newcommand{\Ex}{\mathbf{E}}
+\newcommand{\Prob}{\mathbf{P}}
+\newcommand{\PrfL}{\widehat{P}_{\rm{RF,}\mathcal{L}}(y|\x)}
+\newcommand{\PrfLx}{\widehat{P}_{\rm{RF,}\mathcal{L}\cup\x'}(y|\x)}
+\newcommand{\TreeL}{\theta_{b, \mathcal{L}}(y|\x)}
+\newcommand{\TreeLx}{\theta_{b, \mathcal{L}\cup\x'}(y|\x)}
+ \def\hipp {{\it Hipparcos~}}
+
+\newcommand{\dd}{\mathrm{d}}
+
+\newcommand{\fobs}{f_i^*}
+\newcommand{\sobs}{s_i^*}
+
+% Commands for annotating the docs with fixme and inter-author notes.  See
+% below for how to disable these.
+%
+% Define a \fixme command to mark visually things needing fixing in the draft,
+% as well as similar commands for each author to leave initialed special
+% comments in the document.
+% For final printing or to simply disable these bright warnings, symlink
+% (there's a target 'dist_on' in the makefile that does this) the file
+% macros_state.tex to macros_off.tex
+
+\newcommand{\fixme}[1] { \textcolor{red} {
+{\fbox{ {\bf FIX}
+\ensuremath{\blacktriangleright \blacktriangleright \blacktriangleright}}
+{\bf #1}
+\fbox{\ensuremath{\blacktriangleleft \blacktriangleleft \blacktriangleleft}
+} } } }
+
+% And similarly, one (less jarring, with fewer symbols and no boldface) command
+% for each one of us to leave comments in the main text.
+\newcommand{\james}[1] { \textcolor{blue} {
+\ensuremath{\blacklozenge} {\bf james:}  {#1}
+\ensuremath{\blacklozenge} } }
+
+\newcommand{\hogg}[1] { \textcolor{darkorange} {
+\ensuremath{\blacksquare} {\bf hogg:}  {#1}
+\ensuremath{\blacksquare} } }
+
+\newcommand{\dan}[1] { \textcolor{darkgreen} {
+\ensuremath{\bigstar} {\bf dan:}  {#1}
+\ensuremath{\bigstar} } }
+
+\newcommand{\joey}[1] { \textcolor{red} {
+\ensuremath{\clubsuit} {\bf joey:}  {#1}
+\ensuremath{\clubsuit} } }%\documentclass[manuscript]{aastex}
+
+
+\begin{document}
+%%%%%%%% TITLE, AUTHORS, PUBLICATION STATUS, and ABSTRACT %%%%%%%%%
+
+\shorttitle{Note: Feb 8, 2012}
+\shortauthors{}
+\title{Note on Non-Detections Model}
+\author{
+Joseph W. Richards
+}
+
+% Note the status (in preparation, MNRAS submitted date, ApJ accepted date, in press etc).
+\slugcomment{February 21, 2012}
+
+
+\section{Formulating the Model}
+\label{sec:model}
+
+This note, based on the original note from JWR on Feb. 8, 2012, includes revisions from David Hogg, James Long, Nat Butler, and Josh Bloom.
+
+As a reminder, we are modeling light curve data in the presence of non-detections, which are epochs of observation in which no detection of the source of interest was made.
+
+\subsection{Preliminaries}
+\label{ss:prelim}
+
+For each astronomical object, a photometric survey measures a multi-epoch light curve over $N$ (typically unevenly spaced) epochs.  At each epoch, $t_i$, the survey takes an exposure at the location of the object and either (a) detects the object and records an estimate of its photon flux, $\fobs$ and the statistical uncertainty in that estimate, $\sobs$, or (b) fails to detect the object in the presence of the noise from the sky and instrument.  In the latter case, most modern surveys either record a reference value to signify that no detection was made (as is done in ASAS) or an estimate of the upper detection limit, which is the brightest the object could have been given that it was not detected at a significant level by the software.
+
+There are many reasons that a source might not show up in a catalog.  These include:
+\begin{itemize}
+\item low S/N of the source, due either to a higher noise level or a fainter signal,
+\item the source falling outside of the detection window (e.g., near chip edge),
+\item occulting of the source by an artifact of the detector (e.g., hot pixels, masked out), or
+\item the source was out-shown by an intervening object (e.g., asteroid, comet, airplane, etc.).
+\end{itemize}
+Here, we present a statistical model that can be used to detect variable sources and model their variability using multi-epoch light curves containing epochs of non-detection.  Previous efforts to detect and model variability using multi-epoch photometry have ignored non-detections (REFs) or used them in an ad-hoc manner lacking statistical rigor (REFs).
+
+
+In this paper, we will assume that $\fobs$ and $\sobs$ take on real-valued numbers in epochs for which the source was detected and receive the reference value {\tt NA} in epochs where no detection was made. For notational convenience we assemble all the light curve data into a data set $D$ given by
+\begin{eqnarray}\displaystyle
+D &\equiv& \{D_i\}
+\\
+D_i &\equiv& (\fobs, \sobs)
+\quad ,
+\end{eqnarray}
+where $(\fobs, \sobs)$ are the light curve measurements  at $t_i$.  The goal, for each astronomical object, is to maximize the likelihood of the light curve data, $D$, given a set of model parameters that describe the variability of the object and the characteristics of the observations.
+
+
+\subsection{The Light Curve Model}
+
+To model the mean brightness of the light curve as a function of time, we use a multiple-harmonic Fourier model with oscillation frequency $\omega$,
+\begin{eqnarray}\displaystyle
+\mu_i &=& \sum_{k=1}^K A_k\, \sin (2 \pi t_i \omega  k + \phi_k)
+\quad ,
+\end{eqnarray}
+where $A_k$ is the amplitude of the $k^{\rm th}$ harmonic of frequency $\omega$ and $\phi_k$ is the relative phase offset of harmonic $k$.  In this analysis, we will fix the number of harmonics to $K=3$, though in principle we can use the data to choose the appropriate $K$ to capture the complexity of the light curve.  In addition to this expected brightness, we assume that there is model uncertainty or stochastic variation, leading to a \emph{model variance} $s_\mu^2$ at each point (assumed constant but easily generalized).
+
+
+Additionally, we need to instantiate a latent variable, $b_i$, to represent the detection limit, in units of flux, for epoch $i$.  The $b_i$ parameter is essential because it constrains the possible values of the mean brightness, $\mu_i$, of the light curve when there is a non-detection.  By employing a hierarchical model for the distribution of $b_i$, we can fully utilize all of the information encoded in both the detections and non-detections when computing the data likelihood.   At each epoch, we connect the observed flux, $\fobs$ to the observable flux of the object, $f_i$, via the detection limit, $b_i$ by
+\begin{eqnarray}\displaystyle
+\fobs &=& \left\{\begin{array}{ll}
+  f_i & \mbox{if $f_i \ge b_i$} \\
+  \texttt{NA} & \mbox{if $f_i < b_i$} \\
+\end{array} \right.
+\end{eqnarray}
+so that the observed flux is \texttt{NA} only when the true observable flux, $f_i$, is below the detection limit, $b_i$.  And similarly,
+\begin{eqnarray}\displaystyle
+\sobs &=& \left\{\begin{array}{ll}
+  s_i & \mbox{if $f_i \ge b_i$} \\
+  \texttt{NA} & \mbox{if $f_i < b_i$} \\
+\end{array} \right.
+\end{eqnarray}
+so that the true observable standard error of the flux measurement is \texttt{NA} only when the true observable flux is below the detection limit.
+
+Also, because we do not necessarily believe the reported measurement uncertainties, $\sobs$, we choose to introduce a parameter, $\sigma_i$, to represent the true uncertainty variance for the brightness measurement at epoch $i$.
+
+Hence, our initial model consists of the parameter vectors $\{b_1,...,b_N\}$ and $\{\sigma_1,...,\sigma_N\}$, and the model parameters
+\begin{eqnarray}\displaystyle
+\theta &\equiv& (\omega, \{A_k\}, \{\phi_k\}, s_\mu^2) \quad ,
+\end{eqnarray}
+along with prior information about observation times, $\{t_1,...,t_N\}$ and other prior assumptions, which we make explicit by creating the prior information set
+\begin{eqnarray}\displaystyle
+I &\equiv& (\{t_i\}, \mbox{assumptions}) \quad .
+\end{eqnarray}
+Our goal is to write down the form of the likelihood of the data, $D$, given $\theta$ and $I$.  Then, for each light curve we can find the vector $\theta$ that maximizes the data likelihood.
+
+
+\subsection{Statistical Model for Light Curves with Non-Detections}
+
+We model the observed flux, $\fobs$, as a Gaussian distribution with variance that has both measurement ($\sigma_i$) and model ($s_{\mu}$) contributions.  In the case that a detection is made, we require that the observed brightness be greater than the brightness of the detection limit ($\fobs = f_i \ge b_i$) while in the case that no detection is made, we require that the brightness (if it could be measured) be less than the detection limit ($f_i < b_i$).  To derive the likelihood of the observed $\fobs$, given $\sigma_i$, $\theta$ and $I$, we must integrate over the prior distribution of the unknown $b_i$,
+\begin{eqnarray}\displaystyle
+p(\fobs |\sigma_i,\theta,I) &=& \left\{\begin{array}{ll}
+  N(f_i | \mu_i,  \sigma_i^2 + s_{\mu}^2)\,  \int_0^{f_i} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
+  \int_{0}^{\infty} \int_{0}^{b_i} N(f_i | \mu_i, \sigma_i^2 + s_{\mu}^2)\, p(b_i | \theta)\, \dd f_i\, \dd b_i & \mbox{if $\fobs = \texttt{NA}$} \\
+\end{array}\right.\label{eq:mlik}
+\\
+p(b_i|\theta) &=& N(b_i|B,V_B)
+\label{eq:bprior}
+\\
+\theta &\equiv& (\omega, \{A_k\}, \{\phi_k\}, s_\mu^2, B, V_B) \quad ,
+\end{eqnarray}
+where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ from $0$ (low brightness limit) to $f_i$, enforcing that the detection limit be fainter than the observed brightness.  Likewise, in the epochs for which no detection was made ($\fobs = \texttt{NA}$), we integrate the joint $(f_i, b_i)$ likelihood over all possible values of $b_i$ and over the unknown $f_i$ from $0$ to $b_i$, ensuring that the brightness (if it were able to be observed) be fainter than the detection limit.
+
+In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made on that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle is estimable from the raw telescope images), we can replace Equation \ref{eq:bprior} by these epoch-wise distributions.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
+\begin{eqnarray}\displaystyle
+p(\fobs |\sigma_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
+  N(f_i | \mu_i,  \sigma_i^2 + s_{\mu}^2)\,  I(f_i \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
+ \int_{0}^{b_i} N(f_i | \mu_i, \sigma_i^2 + s_{\mu}^2)\, \dd f_i & \mbox{if $\fobs = \texttt{NA}$} \\
+\end{array}\right.\label{eq:mlik_s}
+\end{eqnarray}
+where the boolean indictor function, $I(f_i \ge b_i)$, is 1 if $f_i \ge b_i$ and 0 otherwise.
+
+Next, we model the reported standard error, $\sobs$, on the uncertainty of the magnitude measurement.  Instead of assuming that $\sobs$ is a perfect, error-free measurement, we probabilistically connect it to the true uncertainty standard error, $\sigma_i$ through a truncated Gaussian likelihood, where the truncation enforces a non-negative variance for each observation.  Our likelihood of observed $\sobs$, given $\sigma_i$, $\theta$ and $I$, is
+\begin{eqnarray}\displaystyle
+p(\sobs | \sigma_i, \theta,I) &=& \left\{\begin{array}{ll}
+  N(s_i|\sigma_i,v_\sigma) & \mbox{if $\sobs \ne \texttt{NA}$} \\
+  \int_{0}^{\infty}  N(s_i | \sigma_i,v_\sigma)\,  \dd s_i & \mbox{if $\sobs = \texttt{NA}$}
+\end{array}\right.\label{eq:slik}
+\\
+\theta &\equiv& (\omega, \{A_k\}, \{\phi_k\}, s_\mu^2, B, V_B ,v_\sigma) \quad ,
+\end{eqnarray}
+where we have added a model parameter $v_\sigma$, which represents the
+variance in the distribution of reported uncertainties given the true
+uncertainty.  The only purpose of
+including the likelihood in Equation \ref{eq:slik} to the model, in practice, to keep the $\sigma_i$ from
+drifting very far away from the $s_i$, as set by the hyperparameter
+$v_\sigma$.
+
+
+Putting it all together, we can write down the likelihood for the data, $D_i$, on a single epoch, as
+\begin{eqnarray}\displaystyle
+p(D_i|\theta,I) &=& \int_0^{\infty} p(\fobs |\sigma_i,\theta,I)\, p(\sobs |\sigma_i,\theta,I)\, p(\sigma_i | \theta)\,\dd \sigma_i
+\\
+p(\sigma_i|\theta) &\propto& \sigma_i^{-1}
+\\
+\theta &\equiv& (\omega, \{A_k\}, \{\phi_k\}, s_\mu^2, B, V_B ,v_\sigma) \quad ,
+\end{eqnarray}
+where we have inserted the expressions from Equations (\ref{eq:mlik}) and (\ref{eq:slik}), and integrated out the nuisance parameter, $\sigma_i$.  We have assumed a Jeffrey's prior on $\sigma_i$, which is non-informative and invariant to reparametrization of the variance.  We could alternatively use an inverse-gamma prior, which takes two hyperparameters (and is conjugate in the case of a normal likelihood with unknown variance).  We have also assumed that $\fobs$ and $\sobs$ are conditionally independent given $\sigma_i$, $\theta$, and $I$.  This is a reasonable assumption in the case that a detection is made at epoch $t_i$.
+
+
+Finally if we assume that the data collected at each epoch are independent given the model parameters, we have that
+\begin{eqnarray}\displaystyle
+p(D|\theta,I) &=& \prod_i p(D_i|\theta,I)
+\quad.
+\end{eqnarray}
+This is the likelihood for the entire
+data set (all the measurements and non-detections of this star from
+all the epochs, as delivered by the survey) given the $2K + 5$ parameter vector $\theta$.  This model
+``correctly'' or at least ``justifiably'' uses all of the information
+available, without making strong assumptions about the survey or its
+veracity.
+
+
+\subsection{Detecting Variability}
+
+We will describe here how we will do the likelihood ratio test of the model of constant flux to that of periodically varying flux.
+
+
+\bibliography{non_detect}
+
+\end{document}
