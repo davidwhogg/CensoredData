@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.4.17)  22 MAR 2012 00:36
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.4.17)  22 MAR 2012 02:46
 entering extended mode
  %&-line parsing enabled.
 **/home/james/Desktop/nyu_visit/censored/tex/note_jpl_20120321/note_jpl_2012032
@@ -249,12 +249,12 @@ driver: pdftex
 
 (1in=72.27pt, 1cm=28.45pt)
 -----------------------
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 62.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 61.
 (/usr/share/texmf-texlive/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 62.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 61.
 
 <50.pdf, id=1, 578.16pt x 433.62pt>
 File: 50.pdf Graphic file (type pdf)
@@ -271,25 +271,58 @@ File: 96.pdf Graphic file (type pdf)
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
+<mira_period_density.pdf, id=4, 578.16pt x 433.62pt>
+File: mira_period_density.pdf Graphic file (type pdf)
+
+<use mira_period_density.pdf>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<4.pdf, id=5, 578.16pt x 433.62pt>
+File: 4.pdf Graphic file (type pdf)
+ <use 4.pdf>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<5.pdf, id=6, 578.16pt x 433.62pt>
+File: 5.pdf Graphic file (type pdf)
+ <use 5.pdf>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<7.pdf, id=7, 578.16pt x 433.62pt>
+File: 7.pdf Graphic file (type pdf)
+ <use 7.pdf>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<rrl_period_density.pdf, id=8, 578.16pt x 433.62pt>
+File: rrl_period_density.pdf Graphic file (type pdf)
+
+<use rrl_period_density.pdf>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./50.pdf>] [2 <./52.pdf> <
-./96.pdf>] (./note_jpl_20120321.aux) ) 
+./96.pdf>] [3 <./mira_period_density.pdf> <./4.pdf>] [4 <./5.pdf> <./7.pdf>]
+[5 <./rrl_period_density.pdf>] (./note_jpl_20120321.aux) ) 
 Here is how much of TeX's memory you used:
- 2450 strings out of 493911
- 30720 string characters out of 1155272
- 87576 words of memory out of 3000000
- 5708 multiletter control sequences out of 15000+50000
- 5466 words of font info for 20 fonts, out of 3000000 for 9000
+ 2472 strings out of 493911
+ 31096 string characters out of 1155272
+ 89592 words of memory out of 3000000
+ 5726 multiletter control sequences out of 15000+50000
+ 4553 words of font info for 17 fonts, out of 3000000 for 9000
  706 hyphenation exceptions out of 8191
- 27i,5n,32p,376b,273s stack positions out of 5000i,500n,10000p,200000b,50000s
-</usr/share/texmf-texlive/fonts/type1/pub
-lic/amsfonts/cm/cmbx10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfont
-s/cm/cmbx9.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.p
-fb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on note_jpl_20120321.pdf (2 pages, 148880 bytes).
+ 27i,5n,32p,409b,273s stack positions out of 5000i,500n,10000p,200000b,50000s
+</usr/share/texmf-tex
+live/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-texlive/fonts/
+type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-texlive/fonts/type1/public
+/amsfonts/cm/cmsy10.pfb>
+Output written on note_jpl_20120321.pdf (5 pages, 243622 bytes).
 PDF statistics:
- 166 PDF objects out of 1000 (max. 8388607)
+ 385 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 41 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -55,33 +55,29 @@
 \begin{document}
 \section*{Initial Test of Nat's Code on Miras and RR Lyrae - JPL - March 21}
 
-I ran Nat's censored code on all our Miras and RR Lyrae both with censored observations and without censored observations.
+I ran Nat's censored code on all our Miras and 100 of our RR Lyrae both with censored observations and without censored observations. For Miras:
 
-\subsection{Miras}
 \begin{itemize}
 \item of the 1720 Miras, 247 had different period estimates (by more than 1\%) after including the censored observations
 \item from visual inspectation almost all these 247 had the correct period after using the censored data
 \item for the 247, using censored data nearly always doubled the period estimate (see plots below)
 \end{itemize}
 
-
-
 \noindent For RR Lyrae:
 \begin{itemize}
-\item i like RR lyraes
+\item tested 100 of the RR Lyrae, period was identical for both models for all 100 curves
+\item visual inspection of folded curves suggests we get period right very high fraction of the time
+\item perhaps these RR Lyrae are too easy
 \end{itemize}
 
-- density of miras periods w / wo censored obs, density of rr lyrae periods w / w/o censored 
-- trouble getting unnormalized amplitude out of code
-- may be issue with selection of miras, other interesting patterns may arise if we run code on non-miras
 
-
+\noindent I wasn't able to back amplitudes out of Nat's code so I can't make a period -- amplitude plot just yet. For Miras where the naive model gets half the correct period, the amplidutes are going to way undershoot the true value. When the period is right but a lot of censoring, the amplidues will be biased down a bit.
 
 
 \begin{figure}[h]
   \begin{center}
     \begin{includegraphics}[height=4in,width=4in]{50.pdf}
-      \caption{Mira where without using censored data the period is half of the estimate using censored. \textbf{period w/o censored = half period with censored} is the most common scenario among the Miras.}
+      \caption{Mira where without using censored data the period is half of the estimate using censored. This is the issue with the majority of the 247 where naive and censored models disagree.}
     \end{includegraphics}
   \end{center}
 \end{figure}
@@ -104,6 +100,59 @@ I ran Nat's censored code on all our Miras and RR Lyrae both with censored obser
     \end{includegraphics}
   \end{center}
 \end{figure}
+
+
+
+\begin{figure}[h]
+  \begin{center}
+    \begin{includegraphics}[height=4in,width=4in]{mira_period_density.pdf}
+      \caption{Densities of Mira periods using censored model and ignoring censoring. A few very low period estimates are clipped in the graph.\label{mira_period_plot}}
+    \end{includegraphics}
+  \end{center}
+\end{figure}
+
+
+
+\begin{figure}[h]
+  \begin{center}
+    \begin{includegraphics}[height=4in,width=4in]{4.pdf}
+      \caption{RR Lyrae. Period is correct for both models.}
+    \end{includegraphics}
+  \end{center}
+\end{figure}
+
+
+
+\begin{figure}[h]
+  \begin{center}
+    \begin{includegraphics}[height=4in,width=4in]{5.pdf}
+      \caption{Another RR Lyrae with period correct in both models. Notice that non-detections are more frequent at higher magnitudes as we expect.}
+    \end{includegraphics}
+  \end{center}
+\end{figure}
+
+
+
+
+\begin{figure}[h]
+  \begin{center}
+    \begin{includegraphics}[height=4in,width=4in]{7.pdf}
+      \caption{Another RR Lyrae with period correct in both models. Interesting censoring pattern. Perhaps the censoring threshold was at a low magnitude during the first two observing cycles and then increased.}
+    \end{includegraphics}
+  \end{center}
+\end{figure}
+
+
+
+
+\begin{figure}[h]
+  \begin{center}
+    \begin{includegraphics}[height=4in,width=4in]{rrl_period_density.pdf}
+      \caption{RRL period densities are the same for the two models.\label{rrl_period_plot}}
+    \end{includegraphics}
+  \end{center}
+\end{figure}
+
 
 
 
