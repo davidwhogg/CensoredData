@@ -1,0 +1,110 @@
+\documentclass[10pt]{article}
+\usepackage{verbatim, amsmath,amssymb,amsthm,graphicx}
+\usepackage[margin=.5in,nohead,nofoot]{geometry}
+\usepackage{sectsty}
+\usepackage{float}
+\sectionfont{\normalsize}
+\subsectionfont{\small}
+
+\title{}
+\date{}
+\author{}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}{Example}[section]
+
+\newcommand{\argmin}[1]{\underset{#1}{\operatorname{argmin}}\text{ }}
+\newcommand{\argmax}[1]{\underset{#1}{\operatorname{argmax}}}
+\newcommand{\minimax}[2]{\argmin{#1}\underset{#2}{\operatorname{max}}}
+\newcommand{\bb}{\textbf{b}}
+
+\newcommand{\Var}{\text{Var }}
+\newcommand{\Cov}{\text{Cov }}
+
+
+\newenvironment{my_enumerate}{
+  \begin{enumerate}
+    \setlength{\itemsep}{1pt}
+    \setlength{\parskip}{0pt}
+    \setlength{\parsep}{0pt}}{\end{enumerate}
+}
+
+
+
+% Alter some LaTeX defaults for better treatment of figures:
+% See p.105 of [yas] elisp error!TeX Unbound'' for suggested values.
+% See pp. 199-200 of Lamport's [yas] elisp error!LaTeX'' book for details.
+%   General parameters, for ALL pages:
+\renewcommand{\topfraction}{0.9}% max fraction of floats at top
+\renewcommand{\bottomfraction}{0.8}% max fraction of floats at bottom
+%   Parameters for TEXT pages (not float pages):
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}     % 2 may work better
+\setcounter{dbltopnumber}{2}    % for 2-column pages
+\renewcommand{\dbltopfraction}{0.9}% fit big float above 2-col. text
+\renewcommand{\textfraction}{0.07}% allow minimal text w. figs
+%   Parameters for FLOAT pages (not text pages):
+\renewcommand{\floatpagefraction}{0.7}% require fuller float pages
+% N.B.: floatpagefraction MUST be less than topfraction !!
+\renewcommand{\dblfloatpagefraction}{0.7}% require fuller float pages
+
+% remember to use [htp] or [htpb] for placement
+
+
+\begin{document}
+\section*{Initial Test of Nat's Code on Miras and RR Lyrae - JPL - March 21}
+
+I ran Nat's censored code on all our Miras and RR Lyrae both with censored observations and without censored observations.
+
+\subsection{Miras}
+\begin{itemize}
+\item of the 1720 Miras, 247 had different period estimates (by more than 1\%) after including the censored observations
+\item from visual inspectation almost all these 247 had the correct period after using the censored data
+\item for the 247, using censored data nearly always doubled the period estimate (see plots below)
+\end{itemize}
+
+
+
+\noindent For RR Lyrae:
+\begin{itemize}
+\item i like RR lyraes
+\end{itemize}
+
+- density of miras periods w / wo censored obs, density of rr lyrae periods w / w/o censored 
+- trouble getting unnormalized amplitude out of code
+- may be issue with selection of miras, other interesting patterns may arise if we run code on non-miras
+
+
+
+
+\begin{figure}[h]
+  \begin{center}
+    \begin{includegraphics}[height=4in,width=4in]{50.pdf}
+      \caption{Mira where without using censored data the period is half of the estimate using censored. \textbf{period w/o censored = half period with censored} is the most common scenario among the Miras.}
+    \end{includegraphics}
+  \end{center}
+\end{figure}
+
+
+\begin{figure}[h]
+  \begin{center}
+    \begin{includegraphics}[height=4in,width=4in]{52.pdf}
+      \caption{Another Mira.}
+    \end{includegraphics}
+  \end{center}
+\end{figure}
+
+
+
+\begin{figure}[h]
+  \begin{center}
+    \begin{includegraphics}[height=4in,width=4in]{96.pdf}
+      \caption{And a third Mira.}
+    \end{includegraphics}
+  \end{center}
+\end{figure}
+
+
+
+\end{document}
