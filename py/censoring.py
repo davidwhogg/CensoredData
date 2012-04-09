@@ -2,10 +2,16 @@ import numpy as np
 from scipy.optimize import fmin
 from scipy import special
 
-
-## this is weighted least squares, weights on points are given uncertainties
-## we ignore censored observations here
 def naive_opt(myData):
+    """ 
+    This model ignores uncertainty, just weighted least squares.
+
+    Inputs:
+        myData: data object
+
+    Ouput:
+        fitted model parameters
+    """
     ## compute weight matrix, remember errors are in SD, not var
     Wsqrt = np.diag(myData.known_errors[:,0])
     ## multiply predictors and response by weight matrix
@@ -17,13 +23,19 @@ def naive_opt(myData):
     return np.dot(XtXinv,XtY)
 
 
-## a simple version of our model where:
-## 1) sigmas = s's (i.e. reported standard deviations are correct)
-## 2) sigma_mu = 0 (no model uncertainty)
-## 3) known censoring threshold
-## compute_censored=False ignores censoring, use this to test
-## that optimization methods are working
 def simple_model_likelihood(params,myData,b,compute_censored):
+    """
+    Version of our model that treats reported uncertainties as true, sets model 
+    uncertainty to 0, and assumes we know the censoring threshold.
+    
+    Inputs:
+        params: model parameters to compute likelihood for
+        myData: data object
+        b: censoring threshold
+        compute_censored: should we compute the liklihood for censored observations
+    Output:
+        likelihood of model for params
+    """
     params = np.array(params).reshape((len(params),1))
     ## compute (-2.0 * log likelihood) for uncensored observations
     normalized_differences = (myData.known_response - np.dot(myData.known_predictors,params)) / myData.known_errors
@@ -44,6 +56,7 @@ class SimParameters:
         self.sigmas = np.ones(n).reshape((n,1))
         self.n = n
 
+## for running tests, evaluating code
 class SimData:
     def __init__(self,Params):
         p = Params.beta.shape[0] - 1
@@ -78,7 +91,8 @@ class Data:
         print "censored_predictors:"
         print self.censored_predictors
 
-    
+##def lc_to_data_object(time, signal, error, time_missing):
+
 
 if __name__ == "__main__":
     ## generate parameters and data for the model
