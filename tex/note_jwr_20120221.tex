@@ -112,46 +112,46 @@ As a reminder, we are modeling light curve data in the presence of non-detection
 \subsection{Preliminaries}
 \label{ss:prelim}
 
-For each astronomical object, a photometric survey measures a multi-epoch light curve over $N$ (typically unevenly spaced) epochs.  At each epoch, $t_i$, the survey takes an exposure at the location of the object and either (a) detects the object and records an estimate of its photon flux, $\fobs$ and the statistical uncertainty in that estimate, $\sobs$, or (b) fails to detect the object in the presence of the noise from the sky and instrument.  In the latter case, most modern surveys either record a reference value to signify that no detection was made (as is done in ASAS) or an estimate of the upper detection limit, which is the brightest the object could have been given that it was not detected at a significant level by the software.
+For each astronomical object, a photometric survey measures a multi-epoch light curve over $N$ (typically unevenly spaced) epochs.  At each epoch $i$, with associated time $t_i$, the survey takes an exposure at the location of the object and either (a) detects the object and records an estimate of its photon flux, $\fobs$ and the root variance of the statistical uncertainty in that estimate, $\sobs$, or (b) fails to detect the object.  In the latter case, most modern surveys either record a reference value to signify that no detection was made (as is done in ASAS) or an estimate of the upper detection limit, $b_i$, which is the brightest the object could have been given that it was not detected at a significant level by the software.
 
 There are many reasons that a source might not show up in a catalog.  These include:
 \begin{itemize}
 \item low S/N of the source, due either to a higher noise level or a fainter signal,
 \item the source falling outside of the detection window (e.g., near chip edge),
 \item occulting of the source by an artifact of the detector (e.g., hot pixels, masked out), or
-\item the source was out-shown by an intervening object (e.g., asteroid, comet, airplane, etc.).
+\item the source was out-shone by an intervening object (e.g., asteroid, comet, variable star, airplane, etc.).
 \end{itemize}
-Here, we present a statistical model that can be used to detect variable sources and model their variability using multi-epoch light curves containing epochs of non-detection.  Previous efforts to detect and model variability using multi-epoch photometry have ignored non-detections (REFs) or used them in an ad-hoc manner lacking statistical rigor (REFs).
+Here, we present a statistical model that can be used to detect variable sources and model their variability using multi-epoch light curves containing epochs of non-detection.  Previous efforts to detect and model variability using multi-epoch photometry have typically ignored non-detections (REFs) or used them in an ad-hoc manner lacking statistical rigor (REFs).  An exception is \citet{2009AJ....137.4400L}, who measure proper motions of sources in SDSS falling below the detection limit.
 
 
-In this paper, we will assume that $\fobs$ and $\sobs$ take on real-valued numbers in epochs for which the source was detected and receive the reference value {\tt NA} in epochs where no detection was made. For notational convenience we assemble all the light curve data into a data set $D$ given by
+In this paper, we will assume that $\fobs$ and $\sobs$ take on real-valued numbers in epochs for which the source was detected and receive the reference value {\tt NA} in epochs where no detection was made. For notational convenience we assemble all the light curve data for one source into a data set $D$ given by
 \begin{eqnarray}\displaystyle
 D &\equiv& \{D_i\}
 \\
 D_i &\equiv& (\fobs, \sobs)
 \quad ,
 \end{eqnarray}
-where $(\fobs, \sobs)$ are the light curve measurements  at $t_i$.  The goal, for each astronomical object, is to maximize the likelihood of the light curve data, $D$, given a set of model parameters that describe the variability of the object and the characteristics of the observations.
+where $(\fobs, \sobs)$ are the light curve measurements  at $t_i$.  The goal, for each astronomical object, is to construct the likelihood, $f^n$, for the data $D$, given a set of model parameters that describe the variability of the object and the characteristics of the observations, and either to maximize the likelihood with respect to the model parameters or to use it in further inference.
 
 
 \subsection{The Light Curve Model}
 
-To model the mean brightness of the light curve as a function of time, we use a multiple-harmonic Fourier model with oscillation frequency $\omega$,
+To model the mean brightness of the light curve as a function of time, we use a multiple-harmonic Fourier model with angular oscillation frequency $\omega$,
 \begin{eqnarray}\displaystyle
-\mu_i &=& \sum_{k=1}^K A_k\, \sin (2 \pi t_i \omega  k + \phi_k)
-\quad ,
+\mu_i &=& \sum_{k=1}^K A_k\, \sin (t_i \, \omega  k) + B_k\, \cos (t_i \, \omega  k)
+\quad ,\label{eq:fourier}
 \end{eqnarray}
-where $A_k$ is the amplitude of the $k^{\rm th}$ harmonic of frequency $\omega$ and $\phi_k$ is the relative phase offset of harmonic $k$.  In this analysis, we will fix the number of harmonics to $K=3$, though in principle we can use the data to choose the appropriate $K$ to capture the complexity of the light curve.  In addition to this expected brightness, we assume that there is model uncertainty or stochastic variation, leading to a \emph{model variance} $s_\mu^2$ at each point (assumed constant but easily generalized).
+where $\sqrt{A_k^2 + B_k^2}$ is the amplitude of the $k^{\rm th}$ harmonic of the frequency $\omega$ and $\tan^{-1}(B_k,A_k)$ is the relative phase offset of harmonic $k$.  In this analysis, we will fix the number of harmonics to $K=3$, though in principle we can use the data to choose the appropriate $K$ to capture the complexity of the light curve.  In addition to the expected brightness in Equation \ref{eq:fourier}, we assume that there is uncertainty or inappropriateness in the model, leading to a \emph{model variance} $s_\mu^2$ at each point (assumed constant but easily generalized).
 
 
-Additionally, we need to instantiate a latent variable, $b_i$, to represent the detection limit, in units of flux, for epoch $i$.  The $b_i$ parameter is essential because it constrains the possible values of the mean brightness, $\mu_i$, of the light curve when there is a non-detection.  By employing a hierarchical model for the distribution of $b_i$, we can fully utilize all of the information encoded in both the detections and non-detections when computing the data likelihood.   At each epoch, we connect the observed flux, $\fobs$ to the observable flux of the object, $f_i$, via the detection limit, $b_i$ by
+Additionally, we need to instantiate a latent variable, $b_i$, to represent the detection limit, in units of flux, at epoch $i$.  The $b_i$ parameter is essential because it constrains the possible values of the mean brightness, $\mu_i$, of the light curve when there is a non-detection.  By employing a hierarchical model for the distribution of $b_i$, we can fully utilize all of the information encoded in both the detections and non-detections when computing the data likelihood.   At each epoch, we connect the observed flux, $\fobs$, to the latent variable, $f_i$, signifying the true observable flux of the object, via the detection limit, $b_i$ by
 \begin{eqnarray}\displaystyle
 \fobs &=& \left\{\begin{array}{ll}
   f_i & \mbox{if $f_i \ge b_i$} \\
   \texttt{NA} & \mbox{if $f_i < b_i$} \\
 \end{array} \right.
 \end{eqnarray}
-so that the observed flux is \texttt{NA} only when the true observable flux, $f_i$, is below the detection limit, $b_i$.  And similarly,
+so that the observed flux is \texttt{NA} only when the true observable flux, $f_i$, is below the detection limit, $b_i$.  And similarly, we introduce a latent variable, $s_i$, for the true observable standard error,
 \begin{eqnarray}\displaystyle
 \sobs &=& \left\{\begin{array}{ll}
   s_i & \mbox{if $f_i \ge b_i$} \\
@@ -162,9 +162,9 @@ so that the true observable standard error of the flux measurement is \texttt{NA
 
 Also, because we do not necessarily believe the reported measurement uncertainties, $\sobs$, we choose to introduce a parameter, $\sigma_i$, to represent the true uncertainty variance for the brightness measurement at epoch $i$.
 
-Hence, our initial model consists of the parameter vectors $\{b_1,...,b_N\}$ and $\{\sigma_1,...,\sigma_N\}$, and the model parameters
+Hence, our initial model consists of the parameter vectors $\{f_1,...,f_N\}$, $\{s_1,...,s_N\}$, $\{b_1,...,b_N\}$ and $\{\sigma_1,...,\sigma_N\}$, and the model parameters
 \begin{eqnarray}\displaystyle
-\theta &\equiv& (\omega, \{A_k\}, \{\phi_k\}, s_\mu^2) \quad ,
+\theta &\equiv& (\omega, \{A_k\}, \{B_k\}, s_\mu^2) \quad ,
 \end{eqnarray}
 along with prior information about observation times, $\{t_1,...,t_N\}$ and other prior assumptions, which we make explicit by creating the prior information set
 \begin{eqnarray}\displaystyle
@@ -185,11 +185,11 @@ p(\fobs |\sigma_i,\theta,I) &=& \left\{\begin{array}{ll}
 p(b_i|\theta) &=& N(b_i|B,V_B)
 \label{eq:bprior}
 \\
-\theta &\equiv& (\omega, \{A_k\}, \{\phi_k\}, s_\mu^2, B, V_B) \quad ,
+\theta &\equiv& (\omega, \{A_k\}, \{B_k\}, s_\mu^2, B, V_B) \quad ,
 \end{eqnarray}
 where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ from $0$ (low brightness limit) to $f_i$, enforcing that the detection limit be fainter than the observed brightness.  Likewise, in the epochs for which no detection was made ($\fobs = \texttt{NA}$), we integrate the joint $(f_i, b_i)$ likelihood over all possible values of $b_i$ and over the unknown $f_i$ from $0$ to $b_i$, ensuring that the brightness (if it were able to be observed) be fainter than the detection limit.
 
-In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made on that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle is estimable from the raw telescope images), we can replace Equation \ref{eq:bprior} by these epoch-wise distributions.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
+In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made on that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle can be inferred from the raw telescope images), we can replace Equation \ref{eq:bprior} with a different distribution per epoch.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
   N(f_i | \mu_i,  \sigma_i^2 + s_{\mu}^2)\,  I(f_i \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
@@ -205,23 +205,24 @@ p(\sobs | \sigma_i, \theta,I) &=& \left\{\begin{array}{ll}
   \int_{0}^{\infty}  N(s_i | \sigma_i,v_\sigma)\,  \dd s_i & \mbox{if $\sobs = \texttt{NA}$}
 \end{array}\right.\label{eq:slik}
 \\
-\theta &\equiv& (\omega, \{A_k\}, \{\phi_k\}, s_\mu^2, B, V_B ,v_\sigma) \quad ,
+\theta &\equiv& (\omega, \{A_k\}, \{B_k\}, s_\mu^2, B, V_B ,v_\sigma) \quad ,
 \end{eqnarray}
+\joey{Need a distribution that is truncated at 0. Something better? }
 where we have added a model parameter $v_\sigma$, which represents the
 variance in the distribution of reported uncertainties given the true
-uncertainty.  The only purpose of
-including the likelihood in Equation \ref{eq:slik} to the model, in practice, to keep the $\sigma_i$ from
+uncertainty.  The only purpose of 
+ including the likelihood in Equation \ref{eq:slik} to the model, in practice, to keep the $\sigma_i$ from
 drifting very far away from the $s_i$, as set by the hyperparameter
 $v_\sigma$.
 
 
-Putting it all together, we can write down the likelihood for the data, $D_i$, on a single epoch, as
+Putting it all together, we can write down the likelihood of the data, $D_i$, for the parameters $\theta$, on a single epoch, as
 \begin{eqnarray}\displaystyle
 p(D_i|\theta,I) &=& \int_0^{\infty} p(\fobs |\sigma_i,\theta,I)\, p(\sobs |\sigma_i,\theta,I)\, p(\sigma_i | \theta)\,\dd \sigma_i
 \\
 p(\sigma_i|\theta) &\propto& \sigma_i^{-1}
 \\
-\theta &\equiv& (\omega, \{A_k\}, \{\phi_k\}, s_\mu^2, B, V_B ,v_\sigma) \quad ,
+\theta &\equiv& (\omega, \{A_k\}, \{B_k\}, s_\mu^2, B, V_B ,v_\sigma) \quad ,
 \end{eqnarray}
 where we have inserted the expressions from Equations (\ref{eq:mlik}) and (\ref{eq:slik}), and integrated out the nuisance parameter, $\sigma_i$.  We have assumed a Jeffrey's prior on $\sigma_i$, which is non-informative and invariant to reparametrization of the variance.  We could alternatively use an inverse-gamma prior, which takes two hyperparameters (and is conjugate in the case of a normal likelihood with unknown variance).  We have also assumed that $\fobs$ and $\sobs$ are conditionally independent given $\sigma_i$, $\theta$, and $I$.  This is a reasonable assumption in the case that a detection is made at epoch $t_i$.
 
@@ -242,6 +243,12 @@ veracity.
 \subsection{Detecting Variability}
 
 We will describe here how we will do the likelihood ratio test of the model of constant flux to that of periodically varying flux.
+
+
+\subsection{Mixture Model for $\fobs$ or $\sobs$}
+
+This may be too much for this paper, but will be useful in the presence of crappy data.
+
 
 
 \bibliography{non_detect}
