@@ -6,14 +6,14 @@ reported by the data provider?
 
 ### Authors:
 
-Nat Butler ()
-David W. Hogg (NYU)
-James Long (Berkeley)
-Joey Richards (Berkeley)
+* **Nat Butler** (ASU)
+* **David W. Hogg** (NYU)
+* **James Long** (Berkeley)
+* **Joey Richards** (Berkeley)
 
 ### License:
 
-Copyright 2011, 2012 the authors.  All rights reserved.
+Copyright 2011, 2012 the authors.  **All rights reserved**.
 
 ### Contents:
 
