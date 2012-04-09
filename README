@@ -1,33 +1,50 @@
-CONTENTS OF CENSORED SVN REPO
+# CensoredData
 
-data:
+How can we make the best use of non-detections and noisy data when we
+don't believe the uncertainty or upper limit informaiton being
+reported by the data provider?
 
-mira_sims - light curves for simulated mira variables.  LCs are of ASAS 235627-4947.2 with varying fractions of the original flux, e.g., 1, 0.5, 0.25,É,0.01
+### Authors:
 
-miras - ASAS light curves for the 1720 mira candidates, with non-detections denoted with 29.999
+Nat Butler ()
+David W. Hogg (NYU)
+James Long (Berkeley)
+Joey Richards (Berkeley)
 
-mira_features.dat - features for 1720 mira candidates, including all Lomb-Scargle and non-LS features
+### License:
 
-rrl - ASAS light curves for the 1029 RR Lyrae, FM candidates, with non-detections denoted with 29.999
+Copyright 2011, 2012 the authors.  All rights reserved.
 
-rrl_features.dat - features for 1029 RR Lyrae, FM candidates, including all Lomb-Scargle and non-LS features.
+### Contents:
 
+#### data:
 
-plots:
+* mira_sims - light curves for simulated mira variables.  LCs are of ASAS 235627-4947.2 with varying fractions of the original flux, e.g., 1, 0.5, 0.25,É,0.01
+
+* miras - ASAS light curves for the 1720 mira candidates, with non-detections denoted with 29.999
+
+* mira_features.dat - features for 1720 mira candidates, including all Lomb-Scargle and non-LS features
+
+* rrl - ASAS light curves for the 1029 RR Lyrae, FM candidates, with non-detections denoted with 29.999
+
+* rrl_features.dat - features for 1029 RR Lyrae, FM candidates, including all Lomb-Scargle and non-LS features.
+
+#### plots:
 
 mira_simulated.pdf - simulated mira light curve with different flux fractions
 
-py:
+#### py:
 
+The code
 
-tex:
+#### tex:
 
-Makefile - file to compile Hogg's original note
+* Makefile - file to compile Hogg's original note
 
-censored_catalog.tex - tex for Hogg's original note
+* censored_catalog.tex - tex for Hogg's original note
 
-ms.tex - manuscript tex file
+* ms.tex - manuscript tex file
 
-non_detect.bib - manuscript bib file
+* non_detect.bib - manuscript bib file
 
-apj.bst - needed for ms.tex to compile
+* apj.bst - needed for ms.tex to compile
