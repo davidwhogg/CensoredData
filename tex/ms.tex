@@ -226,7 +226,6 @@ To model the mean brightness of the light curve as a function of time, we use a 
 \end{eqnarray}
 where $\mu_i$ is the flux at time $t_i$, $\sqrt{A_k^2 + B_k^2}$ is the amplitude of the $k^{\rm th}$ harmonic of the frequency $\omega$ and $\tan^{-1}(B_k,A_k)$ is the relative phase offset of harmonic $k$.  The number of harmonics, $K$, can either be fixed or treated as a free parameter over which to optimize the likelihood.    In addition to the expected brightness in Equation \ref{eq:fourier}, we assume that there is uncertainty or inappropriateness in the model, leading to a \emph{model variance} $s_\mu^2$ at each point (assumed constant but easily generalized).
 
-
 Additionally, we need to instantiate a latent variable, $b_i$, to represent the detection limit, in units of flux, at epoch $i$.  The $b_i$ parameter is essential because it constrains the possible values of the mean brightness, $\mu_i$, of the light curve when there is a non-detection.  By employing a hierarchical model for the distribution of $b_i$, we can fully utilize all of the information encoded in both the detections and non-detections when computing the data likelihood.   At each epoch, we connect the observed flux, $\fobs$, to the latent variable, $\ftrue$, signifying the true observable flux of the object, via the detection limit, $b_i$ by
 \begin{eqnarray}\displaystyle
 \fobs &=& \left\{\begin{array}{ll}
@@ -241,7 +240,7 @@ Also, because we do not necessarily believe the reported measurement uncertainti
 
 Hence, our initial model consists of the parameter vectors $\{f^*_1,...,f^*_N\}$, $\{b_1,...,b_N\}$ and $\{\sigma^2_1,...,\sigma^2_N\}$, and the model parameters
 \begin{eqnarray}\displaystyle
-\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s_\mu^2, \cdots) \quad ,
+\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s^2_\mu, \cdots) \quad ,
 \end{eqnarray}
 along with prior information about observation times, $\{t_1,...,t_N\}$ and other prior assumptions \joey{we should be more explicit here}, which we make explicit by creating the prior information set
 \begin{eqnarray}\displaystyle
@@ -252,26 +251,27 @@ Our goal is to write down the form of the likelihood of the data, $D$, given $\t
 
 \subsection{Statistical Model for Light Curves with Non-Detections}
 
-We model the observed flux, $\fobs$, as a Gaussian distribution with variance that has both measurement ($\sigma^2_i$) and model ($s_{\mu}$) contributions.  In the case that a detection is made, we require that the observed brightness be greater than the brightness of the detection limit ($\fobs = \ftrue \ge b_i$) while in the case that no detection is made, we require that the brightness (if it could be measured) be less than the detection limit ($\ftrue < b_i$).  To derive the likelihood of the observed $\fobs$, given $\sigma^2_i$, $\theta$ and $I$, we must integrate over the prior distribution of the unknown $b_i$,
+We model the observed flux, $\fobs$, as a Gaussian distribution with variance that has both measurement ($\sigma^2_i$) and model ($s^2_{\mu}$) contributions.  In the case that a detection is made, we require that the observed brightness be greater than the brightness of the detection limit ($\fobs = \ftrue \ge b_i$) while in the case that no detection is made, we require that the brightness (if it could be measured) be less than the detection limit ($\ftrue < b_i$).  To derive the likelihood of the observed $\fobs$, given $\sigma^2_i$, $\theta$ and $I$, we must integrate over the prior distribution of the unknown $b_i$,
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I) &=& \left\{\begin{array}{ll}
-  N(\ftrue | \mu_i,  \sigma^2_i + s_{\mu}^2)\,  \int_0^{\ftrue} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
-  \int_{0}^{\infty} \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s_{\mu}^2)\, p(b_i | \theta)\, \dd \ftrue\, \dd b_i & \mbox{if $\fobs = \texttt{NA}$} \\
+  N(\ftrue | \mu_i,  \sigma^2_i + s^2_{\mu})\,  \int_0^{\ftrue} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
+  \int_{0}^{\infty} \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s^2_{\mu})\, p(b_i | \theta)\, \dd \ftrue\, \dd b_i & \mbox{if $\fobs = \texttt{NA}$} \\
 \end{array}\right.\label{eq:mlik}
 \\
 p(b_i|\theta) &=& N(b_i|B,V_B)
 \label{eq:bprior}
 \\
-\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s_\mu^2, B, V_B, \cdots) \quad ,
+\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s^2_\mu, B, V_B, \cdots) \quad ,
 \end{eqnarray}
 where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ from $0$ (low brightness limit) to $\ftrue$, enforcing that the detection limit be fainter than the observed brightness.  Likewise, in the epochs for which no detection was made ($\fobs = \texttt{NA}$), we integrate the joint $(\ftrue, b_i)$ likelihood over all possible values of $b_i$ and over the unknown $\ftrue$ from $0$ to $b_i$, ensuring that the brightness (if it were able to be observed) be fainter than the detection limit.
 
 In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made on that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle can be inferred from the raw telescope images), we can replace Equation \ref{eq:bprior} with a different distribution per epoch.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
-  N(\fobs | \mu_i,  \sigma^2_i + s_{\mu}^2)\,  I(\fobs \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
- \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma_i^2 + s_{\mu}^2)\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
+  N(\fobs | \mu_i,  \sigma^2_i + s^2_{\mu})\,  I(\fobs \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
+ \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma_i^2 + s^2_{\mu})\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
 \end{array}\right.\label{eq:mlik_s}
+\quad ,
 \end{eqnarray}
 where the boolean indictor function, $I(\ftrue \ge b_i)$, is 1 if $\ftrue \ge b_i$ and 0 otherwise.
 
@@ -281,6 +281,7 @@ p(\sobs | \fobs, \sigma^2_i, \theta,I) &=& \left\{\begin{array}{ll}
   \Gamma (\sobs | \sigma^2_i, V_{\sigma} ) & \mbox{if $\fobs \ne \texttt{NA}$} \\
  1& \mbox{if $\fobs = \texttt{NA}$}
 \end{array}\right.\label{eq:slik}
+\quad ,
 \end{eqnarray}
 where $\Gamma(x | m, V)$ is the standard Gamma distribution with mean $m$ and variance $V$, 
 and we have added a model parameter $V_\sigma$ to represent the
@@ -290,17 +291,15 @@ uncertainty.  (Typically, the Gamma distribution is parameterized by parameters 
 drifting very far away from the $s^2_i$, as set by the hyperparameter
 $V_\sigma$.
 
-
 Putting it all together, we can write down the likelihood of the data, $D_i$, for the parameters $\theta$, on a single epoch, as
 \begin{eqnarray}\displaystyle
 p(D_i|\theta,I) &=& \int_0^{\infty} p(\fobs |\sigma^2_i,\theta,I)\, p(\sobs | \fobs, \sigma^2_i,\theta,I)\, p(\sigma^2_i | \theta, I)\,\dd \sigma^2_i
 \\
-p(\sigma^2_i|\theta, I) &\propto& \sigma_i^{-1}
+p(\sigma^2_i|\theta, I) &=& \Gamma(\sigma^2_i | S, V_S)
 \\
-\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s_\mu^2, B, V_B, V_{\sigma}) \quad ,
+\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s^2_\mu, B, V_B, V_{\sigma}, S, V_S) \quad ,
 \end{eqnarray}
-where we have inserted the expressions from Equations (\ref{eq:mlik}) and (\ref{eq:slik}), and integrated out the nuisance parameter, $\sigma^2_i$.  We have assumed a Jeffrey's prior on $\sigma^2_i$, which is non-informative and invariant to reparametrization of the variance.  We could alternatively use an inverse-gamma prior, which takes two hyperparameters (and is conjugate in the case of a normal likelihood with unknown variance). % We have also assumed that $\fobs$ and $\sobs$ are conditionally independent given $\sigma^2_i$, $\theta$, and $I$.  This is a reasonable assumption in the case that a detection is made at epoch $t_i$.
-
+where we have inserted the expressions from Equations (\ref{eq:mlik}) and (\ref{eq:slik}), we have integrated out the nuisance parameter $\sigma^2_i$, again the $\Gamma$ is the Gamma function with specifid mean and variance, and we have two more hyperparameters.
 
 Finally if we assume that the data collected at each epoch are independent given the model parameters, we have that
 \begin{eqnarray}\displaystyle
@@ -342,8 +341,8 @@ In this first experiment, we begin with a well-observed Mira variable from the A
 
 To simulate faint Mira stars from ASAS 235627-4947.2, we use the following procedure:
 \begin{enumerate}
-\item Convert the observed magnitudes, $m_i$, and errors, $s_{m,i}$ to fluxes, $f_i$ and flux errors, $s_{f,i}$ (we assume a V-band zero-point of $3.67\times10^{-9}$ erg/s/cm$^2$/\AA)
-\item For a given flux dimming parameter, $d$, sample the new fluxes, $\tilde{f}_i$, from a Gaussian distribution centered around $f_i / d$ with standard deviation sampled from the empirical ASAS distribution of $s_{f,i} | f_i$. \joey{I found that relationship to be linear with a slope $\approx 1$, which is probably BS since the ASAS mag errors are all crap.  So I added a reference value to each flux error to ensure a mag limit $\approx$ 14.5 mag.}
+\item Convert the observed magnitudes $m_i$ and uncertainty variances $s^2_{m,i}$ to fluxes $f_i$ and flux uncertainty variances $s^2_{f,i}$ (we assume a V-band zero-point of $3.67\times10^{-9}$ erg/s/cm$^2$/\AA)
+\item For a given flux dimming parameter, $d$, sample the new fluxes, $\tilde{f}_i$, from a Gaussian distribution centered around $f_i / d$ with standard deviation sampled from the empirical ASAS distribution of $s^2_{f,i} | f_i$. \joey{I found that relationship to be linear with a slope $\approx 1$, which is probably BS since the ASAS mag errors are all crap.  So I added a reference value to each flux error to ensure a mag limit $\approx$ 14.5 mag.}
 \item Fluxes that are not at least 5$\sigma$ above zero are denoted as non-detections and their flux estimates (and errors) are censored.
 \end{enumerate}
 Folded light curves of ASAS 235627-4947.2, dimmed by four different values of $d$, are plotted in Figure \ref{fig:mirasim}.
