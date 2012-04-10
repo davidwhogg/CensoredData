@@ -5,7 +5,7 @@
 
 % Import the natbib package for bibliography inclusion. To get it to work right, first typeset the bibliography (BibTex), Command-Shift-B.
 % Then, typeset the document with LaTeX, Command-Shift-L or just Command-T.
-% To get proper reference citations using aastex (preprint manuscripts), first typeset as emulateapj with BibTex to create the BibTex 
+% To get proper reference citations using aastex (preprint manuscripts), first typeset as emulateapj with BibTex to create the BibTex
 % files and then typeset again as aastex to get the manuscript with references.
 \usepackage{natbib}
 \usepackage{epsfig,graphicx,color}
@@ -233,7 +233,7 @@ Additionally, we need to instantiate a latent variable, $b_i$, to represent the 
   \texttt{NA} & \mbox{if $\ftrue < b_i$} \\
 \end{array} \right.
 \end{eqnarray}
-so that the observed flux is \texttt{NA} only when the true observable flux, $\ftrue$, is below the detection limit, $b_i$.  
+so that the observed flux is \texttt{NA} only when the true observable flux, $\ftrue$, is below the detection limit, $b_i$.
 
 
 Also, because we do not necessarily believe the reported measurement uncertainties, $\sobs$, we choose to introduce a parameter, $\sigma^2_i$, to represent the true uncertainty variance for the brightness measurement at epoch $i$.
@@ -283,10 +283,10 @@ p(\sobs | \fobs, \sigma^2_i, \theta,I) &=& \left\{\begin{array}{ll}
 \end{array}\right.\label{eq:slik}
 \quad ,
 \end{eqnarray}
-where $\Gamma(x | m, V)$ is the standard Gamma distribution with mean $m$ and variance $V$, 
+where $\Gamma(x | m, V)$ is the standard Gamma distribution with mean $m$ and variance $V$,
 and we have added a model parameter $V_\sigma$ to represent the
 variance in the distribution of reported uncertainties given the true
-uncertainty.  (Typically, the Gamma distribution is parameterized by parameters $(\alpha, \beta)$, where the mean is $\alpha\beta$ and the variance is $\alpha\beta^2$.)  The  purpose of 
+uncertainty.  (Typically, the Gamma distribution is parameterized by parameters $(\alpha, \beta)$, where the mean is $\alpha\beta$ and the variance is $\alpha\beta^2$.)  The  purpose of
  including the likelihood in Equation \ref{eq:slik} to the model, in practice, to keep the $\sigma^2_i$ from
 drifting very far away from the $\sobs$, as set by the hyperparameter
 $V_\sigma$.
@@ -314,6 +314,14 @@ available, without making strong assumptions about the survey or its
 veracity.
 
 
+\begin{figure}[hbtp]
+    \begin{center}
+    \includegraphics[width=\textwidth,%
+        trim=3cm 12cm 5cm 3cm, clip=true]{gm/gm.pdf}
+    \end{center}
+    \caption{The graphical representation of the probability distribution.
+            \label{fig:graph}}
+\end{figure}
 
 
 
@@ -363,19 +371,19 @@ Folded light curves of ASAS 235627-4947.2, dimmed by four different values of $d
 \label{sec:results}
 
 We use the methodology of \cite{2011arXiv1106.2832R} to select the top ASAS Mira  and RR Lyrae, Fundamental Mode candidates.  Using a posterior probability threshold of 0.8 gives us 1720 Mira  and 1029 RR Lyrae candidates.
- 
+
  \subsection{Mira Variables}
- 
+
  Show P - A relationship before and after using the method
- 
- 
- 
+
+
+
  \subsection{RR Lyrae Variables}
- 
+
   Show P - A relationship before and after using the method
 
 There is an RRL P - A relationship (strong linear anti-correlation)
- 
+
 
 \section{Discussion}
 \label{sec:discussion}

@@ -8,3 +8,4 @@ venv
 *.out
 ms.pdf
 data
+*.dvi
