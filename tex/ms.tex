@@ -251,7 +251,7 @@ Our goal is to write down the form of the likelihood of the data, $D$, given $\t
 
 \subsection{Statistical Model for Light Curves with Non-Detections}
 
-We model the observed flux, $\fobs$, as a Gaussian distribution with variance that has both measurement ($\sigma^2_i$) and model ($s^2_{\mu}$) contributions.  In the case that a detection is made, we require that the observed brightness be greater than the brightness of the detection limit ($\fobs = \ftrue \ge b_i$) while in the case that no detection is made, we require that the brightness (if it could be measured) be less than the detection limit ($\ftrue < b_i$).  To derive the likelihood of the observed $\fobs$, given $\sigma^2_i$, $\theta$ and $I$, we must integrate over the prior distribution of the unknown $b_i$,
+We model the observed flux, $\fobs$, as a Gaussian distribution with variance that has both measurement ($\sigma^2_i$) and model ($s^2_{\mu}$) contributions.  In the case that a detection is made, we require that the observed brightness be greater than the brightness of the detection limit ($\fobs = \ftrue \ge b_i$) while in the case that no detection is made, we require that the brightness (if it could be measured) be less than the detection limit ($\ftrue < b_i$).  To derive the likelihood of the observed $\fobs$ given $\sigma^2_i$, $\theta$ and $I$, we must integrate over the prior distribution of the unknown $b_i$,
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I) &=& \left\{\begin{array}{ll}
   N(\ftrue | \mu_i,  \sigma^2_i + s^2_{\mu})\,  \int_0^{\ftrue} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
@@ -269,13 +269,13 @@ In the above, we have assumed no extra information on each of the $b_i$ values b
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
   N(\fobs | \mu_i,  \sigma^2_i + s^2_{\mu})\,  I(\fobs \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
- \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma_i^2 + s^2_{\mu})\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
+ \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s^2_{\mu})\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
 \end{array}\right.\label{eq:mlik_s}
 \quad ,
 \end{eqnarray}
 where the boolean indictor function, $I(\ftrue \ge b_i)$, is 1 if $\ftrue \ge b_i$ and 0 otherwise.
 
-Next, we model the reported variance, $\sobs$, on the uncertainty of the magnitude measurement.  Instead of assuming that $\sobs$ is a perfect, error-free measurement, we probabilistically connect it to the true uncertainty variance, $\sigma^2_i$ through a Gamma likelihood, which is defined to take on non-negative values.  Our likelihood of observed $\sobs$, given $\sigma^2_i$, $\theta$ and $I$, is
+Next, we model the reported variance, $\sobs$, on the uncertainty of the magnitude measurement.  Instead of assuming that $\sobs$ is a perfect, error-free measurement, we probabilistically connect it to the true uncertainty variance, $\sigma^2_i$ through a Gamma likelihood, which is defined to take on non-negative values.  Our likelihood of observed $\sobs$ given $\fobs$, $\sigma^2_i$, $\theta$ and $I$, is
 \begin{eqnarray}\displaystyle
 p(\sobs | \fobs, \sigma^2_i, \theta,I) &=& \left\{\begin{array}{ll}
   \Gamma (\sobs | \sigma^2_i, V_{\sigma} ) & \mbox{if $\fobs \ne \texttt{NA}$} \\
@@ -288,7 +288,7 @@ and we have added a model parameter $V_\sigma$ to represent the
 variance in the distribution of reported uncertainties given the true
 uncertainty.  (Typically, the Gamma distribution is parameterized by parameters $(\alpha, \beta)$, where the mean is $\alpha\beta$ and the variance is $\alpha\beta^2$.)  The  purpose of 
  including the likelihood in Equation \ref{eq:slik} to the model, in practice, to keep the $\sigma^2_i$ from
-drifting very far away from the $s^2_i$, as set by the hyperparameter
+drifting very far away from the $\sobs$, as set by the hyperparameter
 $V_\sigma$.
 
 Putting it all together, we can write down the likelihood of the data, $D_i$, for the parameters $\theta$, on a single epoch, as
@@ -299,7 +299,7 @@ p(\sigma^2_i|\theta, I) &=& \Gamma(\sigma^2_i | S, V_S)
 \\
 \theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s^2_\mu, B, V_B, V_{\sigma}, S, V_S) \quad ,
 \end{eqnarray}
-where we have inserted the expressions from Equations (\ref{eq:mlik}) and (\ref{eq:slik}), we have integrated out the nuisance parameter $\sigma^2_i$, again the $\Gamma$ is the Gamma function with specifid mean and variance, and we have two more hyperparameters.
+where we have inserted the expressions from Equations (\ref{eq:mlik}) and (\ref{eq:slik}), we have integrated out the nuisance parameter $\sigma^2_i$, again the $\Gamma$ is the Gamma function with specified mean and variance, and we have two more hyperparameters $S$ and $V_S$.
 
 Finally if we assume that the data collected at each epoch are independent given the model parameters, we have that
 \begin{eqnarray}\displaystyle
