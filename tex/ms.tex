@@ -269,7 +269,7 @@ where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prio
 In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made on that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle can be inferred from the raw telescope images), we can replace Equation \ref{eq:bprior} with a different distribution per epoch.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
-  N(\ftrue | \mu_i,  \sigma^2_i + s_{\mu}^2)\,  I(\ftrue \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
+  N(\fobs | \mu_i,  \sigma^2_i + s_{\mu}^2)\,  I(\fobs \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
  \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma_i^2 + s_{\mu}^2)\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
 \end{array}\right.\label{eq:mlik_s}
 \end{eqnarray}
