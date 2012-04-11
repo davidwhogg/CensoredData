@@ -10,6 +10,7 @@
 \usepackage{natbib}
 \usepackage{epsfig,graphicx,color}
 \usepackage{longtable}
+\usepackage{amsmath}
 
 \bibliographystyle{apj}
 % A few colors to replace the defaults for certain link types
@@ -254,8 +255,8 @@ Our goal is to write down the form of the likelihood of the data, $D$, given $\t
 We model the observed flux, $\fobs$, as a Gaussian distribution with variance that has both measurement ($\sigma^2_i$) and model ($s^2_{\mu}$) contributions.  In the case that a detection is made, we require that the observed brightness be greater than the brightness of the detection limit ($\fobs = \ftrue \ge b_i$) while in the case that no detection is made, we require that the brightness (if it could be measured) be less than the detection limit ($\ftrue < b_i$).  To derive the likelihood of the observed $\fobs$ given $\sigma^2_i$, $\theta$ and $I$, we must integrate over the prior distribution of the unknown $b_i$,
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I) &=& \left\{\begin{array}{ll}
-  N(\ftrue | \mu_i,  \sigma^2_i + s^2_{\mu})\,  \int_0^{\ftrue} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
-  \int_{0}^{\infty} \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s^2_{\mu})\, p(b_i | \theta)\, \dd \ftrue\, \dd b_i & \mbox{if $\fobs = \texttt{NA}$} \\
+  N(\ftrue | \mu_i,  \sigma^2_i + s^2_{\mu})\,  \int_{-\infty}^{\ftrue} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
+  \int_{-\infty}^{\infty} \int_{-\infty}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s^2_{\mu})\, p(b_i | \theta)\, \dd \ftrue\, \dd b_i & \mbox{if $\fobs = \texttt{NA}$} \\
 \end{array}\right.\label{eq:mlik}
 \\
 p(b_i|\theta) &=& N(b_i|B,V_B)
@@ -263,13 +264,16 @@ p(b_i|\theta) &=& N(b_i|B,V_B)
 \\
 \theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s^2_\mu, B, V_B, \cdots) \quad ,
 \end{eqnarray}
-where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ from $0$ (low brightness limit) to $\ftrue$, enforcing that the detection limit be fainter than the observed brightness.  Likewise, in the epochs for which no detection was made ($\fobs = \texttt{NA}$), we integrate the joint $(\ftrue, b_i)$ likelihood over all possible values of $b_i$ and over the unknown $\ftrue$ from $0$ to $b_i$, ensuring that the brightness (if it were able to be observed) be fainter than the detection limit.
+where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ from $0$ (low brightness limit) to $\ftrue$, enforcing that the detection limit be fainter than the observed brightness.  In the epochs for which no detection was made ($\fobs = \texttt{NA}$), we compute the probability that the unknown detection threshold $b_i$ is greater than the unknown true flux $f_i$. When both $b_i$ and $f_i$ are normally distributed, this can be computed using a single call to a Gaussian cumulative distribution function, specifically
+\begin{equation*}
+\mathbb{P}(b_i \geq f_i) = \int_{-\infty}^0 N(x|B-\mu_i,V_B + \sigma_i^2 + s_{\mu}^2) dx
+\end{equation*}
 
 In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made on that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle can be inferred from the raw telescope images), we can replace Equation \ref{eq:bprior} with a different distribution per epoch.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
   N(\fobs | \mu_i,  \sigma^2_i + s^2_{\mu})\,  I(\fobs \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
- \int_{0}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s^2_{\mu})\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
+ \int_{-\infty}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s^2_{\mu})\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
 \end{array}\right.\label{eq:mlik_s}
 \quad ,
 \end{eqnarray}
