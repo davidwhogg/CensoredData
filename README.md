@@ -7,6 +7,7 @@ reported by the data provider?
 ### Authors:
 
 * **Nat Butler** (ASU)
+* **Dan Foreman-Mackey** (NYU)
 * **David W. Hogg** (NYU)
 * **James Long** (Berkeley)
 * **Joey Richards** (Berkeley)
