@@ -44,14 +44,10 @@ class Censored:
                np.sum(self.loglikelihood_observed(su2,B,VB,Vsig,S,VS))
     
     def loglikelihood_censored(self,su2,B,VB,S,VS):
-    ## integrand of equation (7), integrate this across bi
-        def erf_integral(bi,ui,sig2,su2,B,VB):
-            return stats.norm.cdf((ui - bi) / np.sqrt(sig2 + su2)) \
-                   * stats.gamma.pdf(bi,B**2/VB, scale = VB/B)
     ## integrand of equation (12), integrate this across sig2
         def sig_integrand(sig2,ui,su2,B,VB,S,VS):
-            return integrate.quad(erf_integral,0.,B+5.*np.sqrt(VB), (ui,sig2,su2,B,VB),epsabs = self.tolquad)[0] \
-                   * stats.gamma.pdf(sig2,S**2/VS, scale = VS/S)
+            return  stats.norm.cdf((B-ui) / np.sqrt(VB + sig2 + su2)) * \
+                stats.gamma.pdf(sig2,S**2/VS, scale = VS/S)
         return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0] \
                        for ui in self.uc])
 
