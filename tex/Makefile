@@ -7,6 +7,8 @@ DIRS    = gm
 
 default: subdirs ${DOC_OUT}
 
+ms.pdf: ms.tex gm/gm.pdf
+
 %.pdf: %.tex
 	${LATEX} $<
 	( ${CHECK_RERUN} && ${LATEX} $< ) || echo "All done."
