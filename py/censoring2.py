@@ -23,9 +23,9 @@ def log_likelihood(t,f,e,tc,w,A0,A1,B1,su2,B,VB,Vsig,S,VS):
     ## compute loglikelihood
     ll = 0
     for i in uc:
-        ll += likelihood_censored(i,su2,B,VB)
+        ll += np.log(likelihood_censored(i,su2,B,VB))
     for i in np.range(u.size):
-        ll += likelihood_observed(u[i],f[i],e[i],su2,B,VB,Vsig,S,VS)
+        ll += np.log(likelihood_observed(u[i],f[i],e[i],su2,B,VB,Vsig,S,VS))
     return ll
 
 def likelihood_censored(uc,su2,B,VB):
