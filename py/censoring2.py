@@ -7,6 +7,7 @@ import numpy as np
 import scipy.stats as stats
 #from scipy.stats import norm as scipynorm
 #from scipy.stats import gamma as scipygamma
+from scipy.stats import norm
 from scipy import integrate
 
 
