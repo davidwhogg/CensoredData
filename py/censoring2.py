@@ -35,7 +35,7 @@ def log_likelihood(t,f,e,tc,w,A0,A1,B1,su2,B,VB,Vsig,S,VS):
 def loglikelihood_censored(uc,su2,B,VB,S,VS):
     ## integrand of equation (7), integrate this across bi
     def erf_integral(bi,sig2,uc,su2,B,VB):
-        return stats.norm.cdf(uc, bi, np.sqrt(sig2 + su2)) \
+        return stats.norm.cdf((uc - bi) / np.sqrt(sig2 + su2)) \
                * stats.gamma.pdf(bi,B**2/VB, scale = VB/B)
     ## integrand of equation (12), integrate this across sig2
     def sig_integrand(sig2,uc,su2,B,VB,S,VS):
