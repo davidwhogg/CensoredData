@@ -1,9 +1,13 @@
-###
-### implements censoring model
-### date April 10, 2012
+"""
+This file is part of the Censored Data Project
+Copyright 2012, Joseph W. Richards, David W. Hogg, James Long
 
-### Updated by JWR on 20120411
-###
+This code is synchronized with the document tex/ms.tex
+
+Issues:
+- limits on gamma integrations are made up (sensitivity not checked)
+- make it possible to insert estimated (or known) upper limits
+"""
 
 import numpy as np
 #import scipy.stats as stats
@@ -31,6 +35,8 @@ class Censored:
         self.f = f
         self.e = e
         self.tc = tc
+
+        unittests()
         
     def log_likelihood(self,par):
         """ 
@@ -60,15 +66,14 @@ class Censored:
     def loglikelihood_censored(self,su2,B,VB,S,VS):
     ## integrand of equation (12), integrate this across sig2
         def sig_integrand(sig2,ui,su2,B,VB,S,VS):
-            return  gaussian_cdf((B-ui) / np.sqrt(VB + sig2 + su2)) * \
-                gamma_pdf(sig2,S,VS)
+            return  gaussian_cdf(B, ui, VB + sig2 + su2) * gamma_pdf(sig2,S,VS)
         return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0] \
                        for ui in self.uc])
 
     def loglikelihood_observed(self,su2,B,VB,Vsig,S,VS):
         def integrand(sig2,ui,fi,ei,su2,B,VB,Vsig,S,VS):
-            p_not_cens = gaussian_cdf(fi,B,VB)#fi,B**2/VB, scale = VB/B)
-            p_flux = gaussian_pdf((fi - ui) / np.sqrt(sig2 + su2))
+            p_not_cens = gaussian_cdf(fi, B, VB)
+            p_flux = gaussian_pdf(fi, ui, sig2 + su2)
             p_si = gamma_pdf(ei,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
@@ -83,17 +88,20 @@ class Censored:
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
 
+# PDFs and CDFs of normal and Gamma distributions
+oneoversqrt2pi = 1./np.sqrt(2.*np.pi)
+oneoversqrt2 = 1./np.sqrt(2)
 
-def gaussian_pdf(x):
-    return (1 / (np.sqrt(2.*np.pi))) * np.exp(-(x**2) / (2.))    
+def gaussian_pdf(x, mean, var):
+    return (oneoversqrt2pi/np.sqrt(var) * np.exp(-0.5 * (x - mean)**2 / var) )    
 
-def gaussian_cdf(x):
-    return .5*(1. + erf(x/np.sqrt(2.)))
+def gaussian_cdf(x, mean, var):
+    return .5*(1. + erf(oneoversqrt2 * (x - mean)/np.sqrt(var)) ) # look up correct form
 
 def gamma_pdf(x,mean,var):
     theta = var / mean
     k = mean / theta
-    return (1 / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta)
+    return (1 / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta) # look this up (normalization)
 
 def gamma_cdf(x,mean,var):
     theta = var / mean
@@ -101,7 +109,17 @@ def gamma_cdf(x,mean,var):
     return  gammainc(k,x/theta) ## wikipedia and scipy define imcomplete gamma differently
 
 
+def unittests():
+    assert(np.abs(1. - integrate.quad(gaussian_pdf,-20.,20.,(1.322,1.532))[0]) < 1.e-7)
+    assert(np.abs(1. - integrate.quad(gamma_pdf,0,50.,(1.322,1.532))[0]) < 1.e-7)
+    print 'Unit tests PDFs: All tests passed'
+    assert(np.abs(1. - gaussian_cdf(20,0.332,1.323)) < 1.e-7)
+    assert(np.abs(gaussian_cdf(-20,0.332,1.323)) < 1.e-7)
+    assert(np.abs(1. - gamma_cdf(100,0.332,1.323)) < 1.e-7)
+    assert(np.abs(gamma_cdf(0,0.332,1.323)) < 1.e-7)
+    print 'Unit tests CDFs: All tests passed'
+    return None
 
-### TODO: 1. intelligently choose limits for gamma integral
-###       2. check that my gamma interpretation is right; DONE
-###       3. audit all gamma and norm calls; DONE, replaced by hand-built functions
+
+
+

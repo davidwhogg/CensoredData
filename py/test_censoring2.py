@@ -24,17 +24,19 @@ def plot_llmarg(cens, pstar, ind=0, p0=0, pn=1, n=11, name='P'):
 
 if __name__ == "__main__":
 
+    np.random.seed(47)
+
     import fake_data as fd
     
     A0 = 5.; A1 = 1.;    B1 = 1.
     P = 400.
     w = (2 * np.pi) / P
-    s2mu = 0.2**2
+    s2mu = 0.5**2
     S, VS = 0.7, 0.15**2
     B, VB = 4.5, 0.4**2
     Vsigma = 0.2**2
 
-    gt, f, s2, bt = fd.make_fake_data(3600. * np.random.uniform(size=250), \
+    gt, f, s2, bt = fd.make_fake_data(3600. * np.random.uniform(size=512), \
                                       w, A0, A1, B1, s2mu, B, VB, Vsigma, S, VS)
 
     cmodel = c2.Censored(gt,f,s2,bt,tolquad=1.)
@@ -66,7 +68,7 @@ if __name__ == "__main__":
         plot_llmarg(cmodel,popt,3,p0=0.5, pn = 1.5, n=11, name='B1')
 
         ax = fig.add_subplot(5,2,5)
-        plot_llmarg(cmodel,popt,4,p0=0.01, pn = 0.07, n=11, name=r'$s_{\mu}^2$')
+        plot_llmarg(cmodel,popt,4,p0=0, pn = 0.5, n=11, name=r'$s_{\mu}^2$')
 
         ax = fig.add_subplot(5,2,6)
         plot_llmarg(cmodel,popt,7,p0=0.01, pn = 0.07, n=11, name=r'$V_{\sigma}$')

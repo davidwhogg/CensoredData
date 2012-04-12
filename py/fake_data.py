@@ -1,6 +1,8 @@
 '''
 This file is part of the Censored Data project.
-Copyright 2012 David W. Hogg (NYU).
+Copyright 2012 David W. Hogg (NYU), Joseph W. Richards, and James Long (UCB)
+
+Should be synced with censoring2.py
 
 issues:
 -------
