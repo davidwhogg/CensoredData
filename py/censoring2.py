@@ -22,7 +22,7 @@ import scipy.optimize as op
 
 class Censored:
 
-    def __init__(self, t, f, e, tc, tolquad = 0.1):
+    def __init__(self, t, m, em, tc, tolquad = 0.1):
         """ 
         t: times when not censored (1-d ndarray)
         f: flux when not censored (1-d ndarray)
@@ -32,9 +32,12 @@ class Censored:
         self.tolquad = tolquad # numerical tolerance in integration
         # insert data 
         self.t = t
-        self.f = f
-        self.e = e
+        self.m = m
+        self.em = em
         self.tc = tc
+
+        self.f = mag2flux(self.m)
+        self.ef = magerr2fluxerr(self.m, self.em)
 
         unittests()
         
@@ -78,7 +81,7 @@ class Censored:
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
         return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
-                       for (ui,fi,ei) in zip(self.u,self.f,self.e)])
+                       for (ui,fi,ei) in zip(self.u,self.f,self.ef)])
 
     def negll(self,par):
         return -1*self.log_likelihood(par)
@@ -108,6 +111,16 @@ def gamma_cdf(x,mean,var):
     k = mean / theta
     return  gammainc(k,x/theta) ## wikipedia and scipy define imcomplete gamma differently
 
+# flux to mag conversions
+
+def mag2flux(m, f0 = 1.e-6):
+    return f0 * 10**(-0.4*m)
+
+def flux2mag(f, f0 = 1.e-6):
+    return -2.5 * np.log10(f/f0)
+
+def magerr2fluxerr(m, merr, f0 = 1.e-6):
+    return 0.5 * (mag2flux(m - merr, f0) - mag2flux(m + merr, f0))
 
 def unittests():
     assert(np.abs(1. - integrate.quad(gaussian_pdf,-20.,20.,(1.322,1.532))[0]) < 1.e-7)
@@ -118,6 +131,10 @@ def unittests():
     assert(np.abs(1. - gamma_cdf(100,0.332,1.323)) < 1.e-7)
     assert(np.abs(gamma_cdf(0,0.332,1.323)) < 1.e-7)
     print 'Unit tests CDFs: All tests passed'
+    assert(np.abs(flux2mag(mag2flux(10.123)) - 10.123) < 1.e-7)
+    assert(np.abs(flux2mag(mag2flux(14.3)) - 14.3) < 1.e-7)
+    assert(magerr2fluxerr(10.1, 0.05) > 0)
+    print 'Unit tests flux-mag conversions passed'
     return None
 
 
