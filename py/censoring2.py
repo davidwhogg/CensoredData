@@ -13,6 +13,7 @@ from scipy.stats import norm
 from scipy import integrate
 from scipy.special import gamma
 from scipy.special import erf
+from scipy.special import gammainc
 
 class Censored:
 
@@ -65,7 +66,7 @@ class Censored:
 
     def loglikelihood_observed(self,su2,B,VB,Vsig,S,VS):
         def integrand(sig2,ui,fi,ei,su2,B,VB,Vsig,S,VS):
-            p_not_cens = stats.gamma.cdf(fi,B**2/VB, scale = VB/B)
+            p_not_cens = gamma_cdf(fi,B**2/VB, scale = VB/B)
             p_flux = gaussian_pdf((fi - ui) / np.sqrt(sig2 + su2))
             p_si = gamma_pdf(ei,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
@@ -83,6 +84,12 @@ def gamma_pdf(x,mean,var):
     theta = var / mean
     k = mean / theta
     return (1 / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta)
+
+def gamma_cdf(x,mean,var):
+    theta = var / mean
+    k = mean / theta
+    return  gammainc(k,x/theta) ## wikipedia and scipy define imcomplete gamma differently
+
 
 
 ### TODO: 1. intelligently choose limits for gamma integral
