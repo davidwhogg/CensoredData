@@ -36,7 +36,7 @@ def make_fake_data(times, omega, A0, A1, B1, s2mu, B, VB, Vsigma, S, VS):
     sigma2s = Gamma.rvs(S**2/VS, scale=VS/S, size=times.size)
     sobs2s = np.array([Gamma.rvs(m**2/Vsigma, scale=Vsigma/m, size=1)[0] for m in sigma2s])
     fobss = mus + np.sqrt(sigma2s + s2mu) * Norm.rvs(size=times.size)
-    bs = Gamma.rvs(B**2/VB, scale=VB/B, size=times.size)
+    bs = B + np.sqrt(VB) * Norm.rvs(size=times.size)
     good = fobss > bs
     bad = good == False
     return times[good], fobss[good], sobs2s[good], times[bad]

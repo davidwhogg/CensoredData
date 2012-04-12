@@ -45,7 +45,7 @@ if __name__ == "__main__":
         cProfile.run("cmodel.log_likelihood(popt)")
 
 
-    plotmarg = False
+    plotmarg = True
 
     if(plotmarg):
         # make a plot of ll vs. parameter
@@ -69,13 +69,13 @@ if __name__ == "__main__":
         plot_llmarg(cmodel,popt,4,p0=0.01, pn = 0.07, n=11, name=r'$s_{\mu}^2$')
 
         ax = fig.add_subplot(5,2,6)
-        plot_llmarg(cmodel,popt,5,p0=3, pn = 6, n=11, name='B')
+        plot_llmarg(cmodel,popt,7,p0=0.01, pn = 0.07, n=11, name=r'$V_{\sigma}$')
 
         ax = fig.add_subplot(5,2,7)
-        plot_llmarg(cmodel,popt,6,p0=0.1, pn = 0.22, n=11, name=r'$V_B$')
+        plot_llmarg(cmodel,popt,5,p0=3, pn = 6, n=11, name='B')
 
         ax = fig.add_subplot(5,2,8)
-        plot_llmarg(cmodel,popt,7,p0=0.01, pn = 0.07, n=11, name=r'$V_{\sigma}$')
+        plot_llmarg(cmodel,popt,6,p0=0.1, pn = 0.22, n=11, name=r'$V_B$')
 
         ax = fig.add_subplot(5,2,9)
         plot_llmarg(cmodel,popt,8,p0=0.4, pn = 1.0, n=11, name='S')
