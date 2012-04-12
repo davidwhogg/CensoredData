@@ -35,16 +35,19 @@ class Censored:
         self.m = m
         self.em = em
         self.tc = tc
-
         self.f = mag2flux(self.m)
         self.ef = magerr2fluxerr(self.m, self.em)
-
         unittests()
+        return None
+
+    def mu(self, times, omega, A0, A1, B1):
+        return A0 + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
         
     def log_likelihood(self,par):
         """ 
         computes log p(D|theta,I)
         everything else: same notation as paper (all floats)
+        hella ugly unpacking from par[]
         """
         P = par[0]
         A0 = par[1]
@@ -56,11 +59,11 @@ class Censored:
         Vsig = par[7]
         S = par[8]
         VS = par[9]
-        
+
     ## convert all times to expected flux (i.e. t_i -> u_i)
         w =  (2 * np.pi)/ P 
-        self.u = A0 + A1*np.cos(self.t*w) + B1*np.sin(self.t*w)
-        self.uc = A0 + A1*np.cos(self.tc*w) + B1*np.sin(self.tc*w)
+        self.u  = self.mu(self.t,  w, A0, A1, B1)
+        self.uc = self.mu(self.tc, w, A0, A1, B1)
 
     ## compute loglikelihood
         return np.sum(self.loglikelihood_censored(su2,B,VB,S,VS)) + \
@@ -90,6 +93,47 @@ class Censored:
         opt = op.fmin(self.negll, p0, maxiter=maxiter,ftol=ftol)
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
+
+    def plot(self, ax, par):
+        '''
+        input:
+        - ax: matplotlib axes object
+        - par: set of hyperparameters
+
+        usage:
+            plt.clf()
+            ax = plt.subplot(111)
+            cens.plot(ax, par)
+            plt.savefig('wtf.png')
+        '''
+        omega = 2. * np.pi / par[0]
+        A0 = par[1]
+        A1 = par[2]
+        B1 = par[3]
+        s2mu = par[4]
+        alltimes = np.append(self.t, self.tc)
+        mediant = np.round(np.median(alltimes)).astype(int)
+        ax.axhline(0., color='k', alpha=0.25)
+        ax.plot(self.t - mediant, self.f, 'ko', alpha=0.5, mec='k')
+        def hogg_errorbar(ax, x, y, yerr, color='k', alpha=0.25):
+            for xi,yi,yerri in zip(x,y,yerr):
+                ax.plot([xi, xi], [yi - yerri, yi + yerri], color+'-', alpha=alpha)
+            return None
+        hogg_errorbar(ax, self.t - mediant, self.f, self.ef)
+        ax.plot(self.tc - mediant, np.zeros_like(self.tc), 'r.', alpha=0.5, mec='r')
+        tlim = np.array([np.min(alltimes), np.max(alltimes)])
+        tp = np.linspace(tlim[0], tlim[1], 10000)
+        mup = mu(tp, omega, A0, A1, B1)
+        ax.plot(tp - mediant, mup + np.sqrt(s2mu), 'b-', alpha=0.25)
+        ax.plot(tp - mediant, mup,                 'b-', alpha=0.50)
+        ax.plot(tp - mediant, mup - np.sqrt(s2mu), 'b-', alpha=0.25)
+        ax.set_xlim(tlim - mediant)
+        foo = np.max(self.f + self.ef)
+        ax.set_ylim(-0.1 * foo, 1.1 * foo)
+        ax.set_xlabel(r'time $t$ (MJD - %d~d)' % mediant)
+        ax.set_ylabel(r'flux $f$ ($\mu$Mgy)')
+        ax.set_title(self.name)
+        return None
 
 # PDFs and CDFs of normal and Gamma distributions
 oneoversqrt2pi = 1./np.sqrt(2.*np.pi)
@@ -136,7 +180,3 @@ def unittests():
     assert(magerr2fluxerr(10.1, 0.05) > 0)
     print 'Unit tests flux-mag conversions passed'
     return None
-
-
-
-

@@ -43,11 +43,6 @@ def make_fake_data(times, omega, A0, A1, B1, s2mu, B, VB, Vsigma, S, VS):
     bad = good == False
     return times[good], fobss[good], sobs2s[good], times[bad]
 
-def hogg_errorbar(ax, x, y, yerr, color='k', alpha=0.25):
-    for xi,yi,yerri in zip(x,y,yerr):
-        ax.plot([xi, xi], [yi - yerri, yi + yerri], color+'-', alpha=alpha)
-    return None
-
 def plot_data(ax, goodtimes, fobss, sobs2s, badtimes, title=''):
     alltimes = np.append(goodtimes, badtimes)
     mediant = np.round(np.median(alltimes)).astype(int)
