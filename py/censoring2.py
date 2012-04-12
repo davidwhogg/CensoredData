@@ -12,7 +12,7 @@ import scipy.stats as stats
 from scipy.stats import norm
 from scipy import integrate
 from scipy.special import gamma
-
+from scipy.special import erf
 
 class Censored:
 
@@ -58,7 +58,7 @@ class Censored:
     def loglikelihood_censored(self,su2,B,VB,S,VS):
     ## integrand of equation (12), integrate this across sig2
         def sig_integrand(sig2,ui,su2,B,VB,S,VS):
-            return  stats.norm.cdf((B-ui) / np.sqrt(VB + sig2 + su2)) * \
+            return  gaussian_cdf((B-ui) / np.sqrt(VB + sig2 + su2)) * \
                 gamma_pdf(sig2,S,VS)
         return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0] \
                        for ui in self.uc])
@@ -75,6 +75,9 @@ class Censored:
 
 def gaussian_pdf(x):
     return (1 / (np.sqrt(2.*np.pi))) * np.exp(-(x**2) / (2.))    
+
+def gaussian_cdf(x):
+    return .5*(1. + erf(x/np.sqrt(2.)))
 
 def gamma_pdf(x,mean,var):
     theta = var / mean
