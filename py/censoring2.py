@@ -38,6 +38,7 @@ class Censored:
 
         self.f = mag2flux(self.m)
         self.ef = magerr2fluxerr(self.m, self.em)
+        self.ef2 = self.ef**2
 
         unittests()
         
@@ -74,14 +75,14 @@ class Censored:
                        for ui in self.uc])
 
     def loglikelihood_observed(self,su2,B,VB,Vsig,S,VS):
-        def integrand(sig2,ui,fi,ei,su2,B,VB,Vsig,S,VS):
+        def integrand(sig2,ui,fi,ei2,su2,B,VB,Vsig,S,VS):
             p_not_cens = gaussian_cdf(fi, B, VB)
             p_flux = gaussian_pdf(fi, ui, sig2 + su2)
-            p_si = gamma_pdf(ei,sig2,Vsig)
+            p_si = gamma_pdf(ei2,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
-        return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
-                       for (ui,fi,ei) in zip(self.u,self.f,self.ef)])
+        return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
+                       for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
     def negll(self,par):
         return -1*self.log_likelihood(par)
