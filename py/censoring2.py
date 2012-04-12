@@ -67,7 +67,7 @@ class Censored:
 
     def loglikelihood_observed(self,su2,B,VB,Vsig,S,VS):
         def integrand(sig2,ui,fi,ei,su2,B,VB,Vsig,S,VS):
-            p_not_cens = gaussian_cdf(fi,B,VB)#fi,B**2/VB, scale = VB/B)
+            p_not_cens = gaussian_cdf((fi-B)/np.sqrt(VB + sig2 + su2))#fi,B**2/VB, scale = VB/B)
             p_flux = gaussian_pdf((fi - ui) / np.sqrt(sig2 + su2))
             p_si = gamma_pdf(ei,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
