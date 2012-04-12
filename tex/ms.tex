@@ -266,7 +266,7 @@ p(b_i|\theta) &=& N(b_i|B,V_B)
 \end{eqnarray}
 where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ from $0$ (low brightness limit) to $\ftrue$, enforcing that the detection limit be fainter than the observed brightness.  In the epochs for which no detection was made ($\fobs = \texttt{NA}$), we compute the probability that the unknown detection threshold $b_i$ is greater than the unknown true flux $f_i$. When both $b_i$ and $f_i$ are normally distributed, this can be computed using a single call to a Gaussian cumulative distribution function, specifically
 \begin{equation*}
-\mathbb{P}(b_i \geq f_i) = \int_{-\infty}^0 N(x|B-\mu_i,V_B + \sigma_i^2 + s_{\mu}^2) dx
+\mathbb{P}(b_i \geq f_i) = \int_{-\infty}^0 N(x|\mu_i - B,V_B + \sigma_i^2 + s_{\mu}^2) dx
 \end{equation*}
 
 In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made on that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle can be inferred from the raw telescope images), we can replace Equation \ref{eq:bprior} with a different distribution per epoch.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
