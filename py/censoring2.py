@@ -76,7 +76,9 @@ class Censored:
 def gaussian_pdf(x):
     return (1 / (np.sqrt(2.*np.pi))) * np.exp(-(x**2) / (2.))    
 
-def gamma_pdf(x,k,theta):
+def gamma_pdf(x,mean,var):
+    theta = var / mean
+    k = mean / theta
     return (1 / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta)
 
 
