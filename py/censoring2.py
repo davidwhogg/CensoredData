@@ -29,11 +29,22 @@ class Censored:
         self.e = e
         self.tc = tc
         
-    def log_likelihood(self,P,A0,A1,B1,su2,B,VB,Vsig,S,VS):
+    def log_likelihood(self,par):
         """ 
         computes log p(D|theta,I)
         everything else: same notation as paper (all floats)
         """
+        P = par[0]
+        A0 = par[1]
+        A1 = par[2]
+        B1 = par[3]
+        su2 = par[4]
+        B = par[5]
+        VB = par[6]
+        Vsig = par[7]
+        S = par[8]
+        VS = par[9]
+        
     ## convert all times to expected flux (i.e. t_i -> u_i)
         w =  (2 * np.pi)/ P 
         self.u = A0 + A1*np.cos(self.t*w) + B1*np.sin(self.t*w)
