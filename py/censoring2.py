@@ -14,6 +14,7 @@ from scipy import integrate
 from scipy.special import gamma
 from scipy.special import erf
 from scipy.special import gammainc
+import scipy.optimize as op
 
 class Censored:
 
@@ -66,13 +67,22 @@ class Censored:
 
     def loglikelihood_observed(self,su2,B,VB,Vsig,S,VS):
         def integrand(sig2,ui,fi,ei,su2,B,VB,Vsig,S,VS):
-            p_not_cens = gamma_cdf(fi,B**2/VB, scale = VB/B)
+            p_not_cens = gamma_cdf(fi,B,VB)#fi,B**2/VB, scale = VB/B)
             p_flux = gaussian_pdf((fi - ui) / np.sqrt(sig2 + su2))
             p_si = gamma_pdf(ei,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
         return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
                        for (ui,fi,ei) in zip(self.u,self.f,self.e)])
+
+    def negll(self,par):
+        return -1*self.log_likelihood(par)
+
+    def optim_fmin(self,p0,maxiter=1000,ftol=0.0001,xtol=0.0001):
+        opt = op.fmin(self.negll, p0, maxiter=maxiter,ftol=ftol)
+        #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
+        return opt
+
 
 def gaussian_pdf(x):
     return (1 / (np.sqrt(2.*np.pi))) * np.exp(-(x**2) / (2.))    
@@ -93,5 +103,5 @@ def gamma_cdf(x,mean,var):
 
 
 ### TODO: 1. intelligently choose limits for gamma integral
-###       2. check that my gamma interpretation is right
-###       3. audit all gamma and norm calls
+###       2. check that my gamma interpretation is right; DONE
+###       3. audit all gamma and norm calls; DONE, replaced by hand-built functions
