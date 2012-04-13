@@ -39,9 +39,9 @@ if __name__ == "__main__":
     P = 400.
     w = (2. * np.pi) / P
     s2mu = 25.**2
-    S, VS = 25., 5.**2
     B, VB = 100., 20.**2
-    Vsigma = 10.**2
+    Vsigma = 5.**2
+    S, VS = 25., 5.**2
 
     gt, m, mer, bt = fd.make_fake_data(3600. * np.random.uniform(size=512), \
                                       w, A0, A1, B1, s2mu, B, VB, Vsigma, S, VS)
@@ -118,17 +118,29 @@ if __name__ == "__main__":
         plt.savefig('likelihood_marg.png')
 
 
-    maxlik = False
+
+#[400.0, 100.0, 50.0, 50.0, 625.0, 100.0, 400.0, 100.0, 25.0, 25.0]
+#[ 400.          117.04071511   35.79569983   34.50307783  547.94115976
+#  121.10564877  121.10564877   23.00652436   23.00652436  529.30016307]
+
+    maxlik = True
     if(maxlik):
         #p0 = popt
         #p0 = popt + stats.norm.rvs(0,.01,size=10)
-        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=0.5,xtol=0.1)
-        #pfmin = cmodel.optim_fmin(p0,maxiter=100,ftol=0.01)
+        print p0
+        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=0.5,xtol=0.1,mfev=500)
+        print cmodel.log_likelihood(pfmin)
+        print cmodel.log_likelihood(p0)
 
         plt.clf()
         ax = plt.subplot(111)
         cmodel.plot(ax,pfmin)
         plt.savefig('bestfit_params.png')
+
+        plt.clf()
+        ax = plt.subplot(111)
+        cmodel.plot(ax,pfmin, fold=True)
+        plt.savefig('bestfit_params_folded.png')
 
         print pfmin
         print popt

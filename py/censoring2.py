@@ -101,10 +101,10 @@ class Censored:
         par[1:4] = self.least_sq(Period)
         par[4] = (0.2 * par[1])**2
         par[5] = 2.*np.abs(np.min(self.f))
-        par[6] = par[5]**2
+        par[6] = par[5]
         par[7] = np.median(self.ef2)
         par[8] = par[7]
-        par[9] = par[8]**2.
+        par[9] = par[8] # must be kept small or integration will take too long
         return par
 
     def least_sq(self,Period):
@@ -117,8 +117,8 @@ class Censored:
         AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
         return np.dot(AtAinv,Atb)
         
-    def optim_fmin(self,p0,maxiter=1000,ftol=0.0001,xtol=0.0001):
-        opt = op.fmin(self.negll, p0, maxiter=maxiter,ftol=ftol)
+    def optim_fmin(self,p0,maxiter=1000,ftol=0.0001,xtol=0.0001,mfev=1.e8):
+        opt = op.fmin(self.negll, p0, maxiter=maxiter,ftol=ftol,maxfun=mfev)
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
 
