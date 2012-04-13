@@ -7,6 +7,8 @@ This code is synchronized with the document tex/ms.tex
 Issues:
 - limits on gamma integrations are made up (sensitivity not checked)
 - make it possible to insert estimated (or known) upper limits
+- need a folded version of the plot
+- need a magnitude version of the plot
 """
 
 import numpy as np
@@ -115,7 +117,6 @@ class Censored:
         AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
         return np.dot(AtAinv,Atb)
         
-
     def optim_fmin(self,p0,maxiter=1000,ftol=0.0001,xtol=0.0001):
         opt = op.fmin(self.negll, p0, maxiter=maxiter,ftol=ftol)
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
@@ -168,7 +169,6 @@ oneoversqrt2 = 1./np.sqrt(2)
 
 def gaussian_pdf(x, mean, var):
     return (oneoversqrt2pi/np.sqrt(var) * np.exp(-0.5 * (x - mean)**2 / var) )    
-
 def gaussian_cdf(x, mean, var):
     return .5*(1. + erf(oneoversqrt2 * (x - mean)/np.sqrt(var)) ) # look up correct form
 
