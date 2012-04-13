@@ -128,7 +128,7 @@ if __name__ == "__main__":
         #p0 = popt
         #p0 = popt + stats.norm.rvs(0,.01,size=10)
         print p0
-        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=0.5,xtol=0.1,mfev=500)
+        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=500)
         print cmodel.log_likelihood(pfmin)
         print cmodel.log_likelihood(p0)
 

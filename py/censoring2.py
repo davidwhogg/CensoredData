@@ -99,7 +99,7 @@ class Censored:
         par = np.zeros(10)
         par[0] = Period
         par[1:4] = self.least_sq(Period)
-        par[4] = (0.2 * par[1])**2
+        par[4] = (0.5 * par[1])**2
         par[5] = 2.*np.abs(np.min(self.f))
         par[6] = par[5]
         par[7] = np.median(self.ef2)
@@ -113,7 +113,6 @@ class Censored:
         Amat[1,:] = self.mu(self.t,2.*np.pi / Period, 0,1,0)
         Amat[2,:] = self.mu(self.t,2.*np.pi / Period, 0,0,1)
         Atb = np.dot(Amat, self.f)
-        print Atb.shape
         AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
         return np.dot(AtAinv,Atb)
         
