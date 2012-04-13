@@ -1,4 +1,11 @@
 
+if __name__ == '__main__':
+    import matplotlib
+    matplotlib.use('Agg')
+    from matplotlib import rc
+    rc('font',**{'family':'serif','serif':'Computer Modern Roman','size':18})
+    rc('text', usetex=True)
+
 import censoring2 as c2
 import cProfile
 import scipy.stats as stats
@@ -28,19 +35,33 @@ if __name__ == "__main__":
 
     import fake_data as fd
     
-    A0 = 5.; A1 = 1.;    B1 = 1.
+    A0 = 100.; A1 = 50.;    B1 = 50.
     P = 400.
-    w = (2 * np.pi) / P
-    s2mu = 0.5**2
-    S, VS = 0.7, 0.15**2
-    B, VB = 4.5, 0.4**2
-    Vsigma = 0.2**2
+    w = (2. * np.pi) / P
+    s2mu = 25.**2
+    S, VS = 25., 5.**2
+    B, VB = 100., 20.**2
+    Vsigma = 10.**2
 
-    gt, f, s2, bt = fd.make_fake_data(3600. * np.random.uniform(size=512), \
+    gt, m, mer, bt = fd.make_fake_data(3600. * np.random.uniform(size=512), \
                                       w, A0, A1, B1, s2mu, B, VB, Vsigma, S, VS)
-
-    cmodel = c2.Censored(gt,f,s2,bt,tolquad=1.)
+    
+    cmodel = c2.Censored(gt,m,mer,bt,tolquad=1.)
     popt = [P,A0,A1,B1,s2mu,B,VB,Vsigma,S,VS]
+
+    p0 = cmodel.get_init_par(400.)
+    print p0
+
+    plt.clf()
+    ax = plt.subplot(111)
+    cmodel.plot(ax,p0)
+    plt.savefig('init_params.png')
+
+    plt.clf()
+    ax = plt.subplot(111)
+    cmodel.plot(ax,popt)
+    plt.savefig('true_params.png')
+
 
     prof = True
     if(prof): # profile code?
@@ -56,43 +77,49 @@ if __name__ == "__main__":
         fig.subplots_adjust(wspace=0.2)
 
         ax = fig.add_subplot(5,2,1)
-        plot_llmarg(cmodel,popt,0,p0=350, pn = 450, n=11, name='Period')
+        plot_llmarg(cmodel,popt,0,p0=popt[0]*0.9, pn = popt[0]*1.1, n=11, name='Period')
 
         ax = fig.add_subplot(5,2,2)
-        plot_llmarg(cmodel,popt,1,p0=2, pn = 8, n=11, name='A0')
+        plot_llmarg(cmodel,popt,1,p0=popt[1]*0.9, pn = popt[1]*1.1, n=11, name='A0')
 
         ax = fig.add_subplot(5,2,3)
-        plot_llmarg(cmodel,popt,2,p0=0.5, pn = 1.5, n=11, name='A1')
+        plot_llmarg(cmodel,popt,2,p0=popt[2]*0.9, pn = popt[2]*1.1, n=11, name='A1')
 
         ax = fig.add_subplot(5,2,4)
-        plot_llmarg(cmodel,popt,3,p0=0.5, pn = 1.5, n=11, name='B1')
+        plot_llmarg(cmodel,popt,3,p0=popt[3]*0.9, pn = popt[3]*1.1, n=11, name='B1')
 
         ax = fig.add_subplot(5,2,5)
-        plot_llmarg(cmodel,popt,4,p0=0, pn = 0.5, n=11, name=r'$s_{\mu}^2$')
+        plot_llmarg(cmodel,popt,4,p0=popt[4]*0.1, pn = popt[4]*1.9, n=11, name=r'$s_{\mu}^2$')
 
         ax = fig.add_subplot(5,2,6)
-        plot_llmarg(cmodel,popt,7,p0=0.01, pn = 0.07, n=11, name=r'$V_{\sigma}$')
+        plot_llmarg(cmodel,popt,7,p0=popt[7]*0.1, pn = popt[7]*1.9, n=11, name=r'$V_{\sigma}$')
 
         ax = fig.add_subplot(5,2,7)
-        plot_llmarg(cmodel,popt,5,p0=3, pn = 6, n=11, name='B')
+        plot_llmarg(cmodel,popt,5,p0=popt[5]*0.9, pn = popt[5]*1.1, n=11, name='B')
 
         ax = fig.add_subplot(5,2,8)
-        plot_llmarg(cmodel,popt,6,p0=0.1, pn = 0.22, n=11, name=r'$V_B$')
+        plot_llmarg(cmodel,popt,6,p0=popt[6]*0.1, pn = popt[6]*1.9, n=11, name=r'$V_B$')
 
         ax = fig.add_subplot(5,2,9)
-        plot_llmarg(cmodel,popt,8,p0=0.4, pn = 1.0, n=11, name='S')
+        plot_llmarg(cmodel,popt,8,p0=popt[8]*0.9, pn = popt[8]*1.1, n=11, name='S')
 
         ax = fig.add_subplot(5,2,10)
-        plot_llmarg(cmodel,popt,9,p0=0.01, pn = 0.035, n=11, name=r'$V_S$')
+        plot_llmarg(cmodel,popt,9,p0=popt[9]*0.1, pn = popt[9]*1.9, n=11, name=r'$V_S$')
         plt.savefig('likelihood_marg.png')
 
 
-    maxlik = False
+    maxlik = True
     if(maxlik):
-        p0 = popt
+        #p0 = popt
         #p0 = popt + stats.norm.rvs(0,.01,size=10)
         pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=0.5,xtol=0.1)
         #pfmin = cmodel.optim_fmin(p0,maxiter=100,ftol=0.01)
+
+        plt.clf()
+        ax = plt.subplot(111)
+        cmodel.plot(ax,pfmin)
+        plt.savefig('bestfit_params.png')
+
         print pfmin
         print popt
 

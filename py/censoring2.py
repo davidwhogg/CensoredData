@@ -22,7 +22,7 @@ import scipy.optimize as op
 
 class Censored:
 
-    def __init__(self, t, m, em, tc, tolquad = 0.1):
+    def __init__(self, t, m, em, tc, name = "Awesome LC", tolquad = 0.1):
         """ 
         t: times when not censored (1-d ndarray)
         f: flux when not censored (1-d ndarray)
@@ -38,6 +38,8 @@ class Censored:
         self.f = mag2flux(self.m)
         self.ef = magerr2fluxerr(self.m, self.em)
         self.ef2 = self.ef**2
+        self.name = name
+        
         unittests()
         return None
 
@@ -48,7 +50,7 @@ class Censored:
         """ 
         computes log p(D|theta,I)
         everything else: same notation as paper (all floats)
-        hella ugly unpacking from par[]
+        hella ugly unpacking from par[]; you're so hella NorCal
         """
         P = par[0]
         A0 = par[1]
@@ -89,6 +91,30 @@ class Censored:
 
     def negll(self,par):
         return -1*self.log_likelihood(par)
+
+    def get_init_par(self,Period):
+        # params:     P,A0,A1,B1,su2,B,VB,Vsig,S,VS
+        par = np.zeros(10)
+        par[0] = Period
+        par[1:4] = self.least_sq(Period)
+        par[4] = (0.2 * par[1])**2
+        par[5] = 2.*np.abs(np.min(self.f))
+        par[6] = par[5]**2
+        par[7] = np.median(self.ef2)
+        par[8] = par[7]
+        par[9] = par[8]**2.
+        return par
+
+    def least_sq(self,Period):
+        Amat = np.zeros( (3,len(self.t)))
+        Amat[0,:] = 1.
+        Amat[1,:] = self.mu(self.t,2.*np.pi / Period, 0,1,0)
+        Amat[2,:] = self.mu(self.t,2.*np.pi / Period, 0,0,1)
+        Atb = np.dot(Amat, self.f)
+        print Atb.shape
+        AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
+        return np.dot(AtAinv,Atb)
+        
 
     def optim_fmin(self,p0,maxiter=1000,ftol=0.0001,xtol=0.0001):
         opt = op.fmin(self.negll, p0, maxiter=maxiter,ftol=ftol)
@@ -158,13 +184,13 @@ def gamma_cdf(x,mean,var):
 
 # flux to mag conversions
 
-def mag2flux(m, f0 = 1.e-6):
+def mag2flux(m, f0 = 1.e6):
     return f0 * 10**(-0.4*m)
 
-def flux2mag(f, f0 = 1.e-6):
+def flux2mag(f, f0 = 1.e6):
     return -2.5 * np.log10(f/f0)
 
-def magerr2fluxerr(m, merr, f0 = 1.e-6):
+def magerr2fluxerr(m, merr, f0 = 1.e6):
     return 0.5 * (mag2flux(m - merr, f0) - mag2flux(m + merr, f0))
 
 def unittests():

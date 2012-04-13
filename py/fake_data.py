@@ -10,13 +10,6 @@ issues:
 - not properly commented
 '''
 
-if __name__ == '__main__':
-    import matplotlib
-    matplotlib.use('Agg')
-    from matplotlib import rc
-    rc('font',**{'family':'serif','serif':'Computer Modern Roman','size':18})
-    rc('text', usetex=True)
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm as Norm
 from scipy.stats import gamma as Gamma
@@ -30,8 +23,8 @@ def mu(times, omega, A0, A1, B1):
         + B1 * np.sin(omega * times)
 
 def flux2mag(f):
-    f0 = 1.e-6
-    return -2.5 * np.log10(fobss[good] / f0)
+    f0 = 1.e6
+    return -2.5 * np.log10(f / f0)
 
 def make_fake_data(times, omega, A0, A1, B1, s2mu, B, VB, Vsigma, S, VS):
     '''
