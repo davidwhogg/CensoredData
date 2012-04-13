@@ -7,6 +7,8 @@ import matplotlib.pylab as plt
 import sys, os
 import urllib2 as ulib
 
+import pdb
+
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                       '/Algorithms/fitcurve'))
 from lomb_scargle_refine import lomb as lombr
@@ -63,6 +65,12 @@ def load_lc_from_web(ID):
     return miradata[use,:]
 
 
+def catchnan(p):
+    ll0 = cmodel.log_likelihood(p)
+    if(np.isnan(ll0)):
+        1./0
+    pass
+
 if __name__ == "__main__":
 
     # load catalog
@@ -77,7 +85,7 @@ if __name__ == "__main__":
     
 
     #### FOR EACH MIRA IN miras ####
-    for jj in np.arange(100):
+    for jj in np.arange(1,100):
         # load in data from web
         print 'doing mira ' + str(catalog['ID'][miras[jj]]) + ' dotAstro: ' + str(catalog['dID'][miras[jj]])
     
@@ -90,7 +98,7 @@ if __name__ == "__main__":
         tcen = data['t'][np.where(data['m'] == 29.999)]
 
         # instantiate Censor object
-        cmodel = c2.Censored(tobs, mobs, eobs, tcen, name = catalog['ID'][miras[jj]])
+        cmodel = c2.Censored(tobs, mobs, eobs, tcen, name = catalog['ID'][miras[jj]],tolquad=1.)
 
         # do Lomb-scargle search to get top few periods
         nper = 1 # number of periods to initialize over
@@ -100,9 +108,14 @@ if __name__ == "__main__":
 
         p0 = cmodel.get_init_par(Pinit[0])
         ll0 = cmodel.log_likelihood(p0)
-        if np.isnan(ll0):
-            continue
+
+        #pdb.run('catchnan(p0)')
+
         print 'Log-likelihood at p0: ' + str(ll0)
+        print p0
+        if np.isnan(ll0):
+            raise Exception
+            #continue
 
         lliks = []
         params = np.zeros((nper,10))
@@ -111,8 +124,8 @@ if __name__ == "__main__":
             # params:     P,A0,A1,B1,su2,B,VB,Vsig,S,VS
             p0 = cmodel.get_init_par(Pinit[i])
             print p0
-            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=200)
-            print pfmin
+            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=2000)
+            #print pfmin
             params[i,:] = pfmin
             lliks.append(cmodel.log_likelihood(pfmin))
 

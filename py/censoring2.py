@@ -7,8 +7,8 @@ This code is synchronized with the document tex/ms.tex
 Issues:
 - limits on gamma integrations are made up (sensitivity not checked)
 - make it possible to insert estimated (or known) upper limits
-- need a folded version of the plot
 - need a magnitude version of the plot
+- quad returns nan when VB and VS get very large; consider rescaling fluxes to order unity
 """
 
 import numpy as np
@@ -48,7 +48,7 @@ class Censored:
     def mu(self, times, omega, A0, A1, B1):
         return A0 + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
         
-    def log_likelihood(self,par):
+    def log_likelihood(self,par, fast = True):
         """ 
         computes log p(D|theta,I)
         everything else: same notation as paper (all floats)
@@ -70,16 +70,33 @@ class Censored:
         self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1))
         self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1))
 
+        if(fast):
+            return np.sum(self.loglikelihood_censored(su2,B,VB,S,VS)) + \
+                   np.sum(self.loglikelihood_observed_fast(su2,B,VB,Vsig))
     ## compute loglikelihood
         return np.sum(self.loglikelihood_censored(su2,B,VB,S,VS)) + \
                np.sum(self.loglikelihood_observed(su2,B,VB,Vsig,S,VS))
-    
+
     def loglikelihood_censored(self,su2,B,VB,S,VS):
     ## integrand of equation (12), integrate this across sig2
         def sig_integrand(sig2,ui,su2,B,VB,S,VS):
             return  gaussian_cdf(B, ui, VB + sig2 + su2) * gamma_pdf(sig2,S,VS)
-        return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0] \
-                       for ui in self.uc])
+        sumll = 0.
+        for ui in self.uc:
+            tmp = integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0]
+            #print tmp
+            sumll += tmp
+        return np.log(sumll)
+        #return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0] \
+        #               for ui in self.uc])
+
+
+    # JWR: finish this function and run it!
+    def loglikelihood_observed_fast(self,su2,B,VB,Vsig):
+        p_not_cens = gaussian_cdf(self.f, B, VB)
+        p_flux = gaussian_pdf(self.f, self.u, self.ef2 + su2)
+        return np.sum(p_not_cens * p_flux)
+    
 
     def loglikelihood_observed(self,su2,B,VB,Vsig,S,VS):
         def integrand(sig2,ui,fi,ei2,su2,B,VB,Vsig,S,VS):
@@ -88,8 +105,17 @@ class Censored:
             p_si = gamma_pdf(ei2,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
-        return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
-                       for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
+        sumll = 0.
+        for (ui,fi,ei2) in zip(self.u,self.f,self.ef2):
+            tmp = integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]
+            #tmp = integrate.quad(integrand,0.,1.,(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]
+            print tmp, ui, fi, ei2, su2, B, VB, Vsig, S, VS
+            #print integrand(ei2,ui,fi,ei2,su2,B,VB,Vsig,S,VS)
+            #print integrand(0.,ui,fi,ei2,su2,B,VB,Vsig,S,VS)
+            sumll += tmp
+        return np.log(sumll)    
+        #return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
+        #               for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
     def negll(self,par):
         return -1*self.log_likelihood(par)
@@ -99,12 +125,13 @@ class Censored:
         par = np.zeros(10)
         par[0] = Period
         par[1:4] = self.least_sq(Period)
-        par[4] = (0.4 * mag2flux(par[1]))**2
+        par[4] = (1. * mag2flux(par[1]))**2
         par[5] = 2.*np.abs(np.min(self.f))
-        par[6] = par[5]
+        par[6] = par[5]**2
         par[7] = np.median(self.ef2)
         par[8] = par[7]
-        par[9] = par[8] # must be kept small or integration will take too long
+        par[9] = par[8]**2 # must be kept small or integration will take too long
+        # also if par[9] is too large, the integration may return nan
         return par
 
     def least_sq(self,Period):
@@ -176,7 +203,7 @@ class Censored:
         foo = np.max(self.f + self.ef)
         ax.set_ylim(-0.1 * foo, 1.1 * foo)
         if(fold):
-            ax.set_xlabel(r'$phi$')
+            ax.set_xlabel(r'$\phi$')
         else:
             ax.set_xlabel(r'time $t$ (MJD - %d~d)' % mediant)
         ax.set_ylabel(r'flux $f$ ($\mu$Mgy)')
@@ -188,7 +215,8 @@ oneoversqrt2pi = 1./np.sqrt(2.*np.pi)
 oneoversqrt2 = 1./np.sqrt(2)
 
 def gaussian_pdf(x, mean, var):
-    return (oneoversqrt2pi/np.sqrt(var) * np.exp(-0.5 * (x - mean)**2 / var) )    
+    return (oneoversqrt2pi/np.sqrt(var) * np.exp(-0.5 * (x - mean)**2 / var) )
+
 def gaussian_cdf(x, mean, var):
     return .5*(1. + erf(oneoversqrt2 * (x - mean)/np.sqrt(var)) ) # look up correct form
 
