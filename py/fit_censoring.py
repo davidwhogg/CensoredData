@@ -36,6 +36,9 @@ def period_lombc(t, f, e, tc,f0=1./1000,df=1e-5,fn=5., n_per = 5):
     # lomb-scargle periodogram
     psd = lombc(t,ftest,e,tc,f0,df,numf)
 
+    #plt.plot(freqgrid,psd)
+    #plt.show()
+    
     plt.plot(1./freqgrid,psd)
     indpeak = find_peaks(psd) # find peaks in LS
     indtop = np.where(psd[indpeak] >= np.sort(psd[indpeak])[-n_per])[0] 
@@ -55,7 +58,8 @@ def load_lc_from_web(ID):
     miradata = np.loadtxt(ur.readlines(), usecols=(0,3,8,11), \
                           dtype=[('t',np.float64), ('m',np.float64), ('e',np.float64),\
                                  ('grade','S2')])
-    use = np.where(np.logical_and(miradata['grade'] != 'D',miradata['grade'] != 'F'))[0]
+    use = np.where(np.logical_and(np.logical_and(miradata['grade'] != 'D',miradata['grade'] != 'F'),\
+                                  miradata['m'] != 99.999))[0]
     return miradata[use,:]
 
 
@@ -70,62 +74,65 @@ if __name__ == "__main__":
 
     # select all miras (P(Mira) > 0.75 and anom_score < 3.0)
     miras = np.where(np.logical_and(catalog['Pmira'] > 0.75 , catalog['anom'] < 3.))[0] # 2538 mira variables
-
-    miras_LS_P = catalog['P'][miras]
-
+    
 
     #### FOR EACH MIRA IN miras ####
-    data = load_lc_from_web(catalog['ID'][0])
-
-    #'http://www.astrouw.edu.pl/cgi-asas/asas_cgi_get_data?102614-3830.6,asas3'
-
-    # load in data
-    #path = '/Users/jwrichar/Documents/CDI/CensoredData/'
-    #data = np.loadtxt(path + "data/lc_102614-3830.6.dat",\
-    #                     dtype=[('t', np.float32), ('m', np.float32),\
-    #                            ('e', np.float32)])
-
-    indo = np.where(data['m'] != 29.999)
-
-    tobs = data['t'][indo]
-    mobs = data['m'][indo]
-    eobs = data['e'][indo]
-    tcen = data['t'][np.where(data['m'] == 29.999)]
-
-    # instantiate Censor object
-    cmodel = c2.Censored(tobs, mobs, eobs, tcen, name = catalog['ID'][0])
-
-    # do Lomb-scargle search to get top few periods
-    nper = 3 # number of periods to initialize over
-    Pinit = period_lombc(tobs, mobs, eobs, tcen, n_per = nper,df=1e-5)
-#    Ps = periods_lomb(tobs, mobs, eobs)
-    print Pinit
-
-    lliks = []
-    params = np.zeros((nper,10))
-    for i in np.arange(nper):
-        # initial guess for model parameters
-        # params:     P,A0,A1,B1,su2,B,VB,Vsig,S,VS
-        p0 = cmodel.get_init_par(Pinit[i])
-        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=250)
-        print pfmin
-        params[i,:] = pfmin
-        lliks.append(cmodel.log_likelihood(pfmin))
-
-    pstar = params[np.argmax(lliks),:]
-
-    plt.clf()
-    ax = plt.subplot(111)
-    cmodel.plot(ax, pstar, fold=False)
-    plt.savefig(path + 'plots/bestfit_ASAS102614-3830.6.png')
-
-    plt.clf()
-    ax = plt.subplot(111)
-    cmodel.plot(ax, pstar, fold=True)
-    plt.savefig(path + 'plots/bestfit_ASAS102614-3830.6_folded.png')
-
+    for jj in np.arange(1,100):
+        # load in data from web
+        print 'doing mira ' + str(catalog['ID'][miras[jj]]) + ' dotAstro: ' + str(catalog['dID'][miras[jj]])
     
-    # save result as line in txt file
+        data = load_lc_from_web(catalog['ID'][miras[jj]])
+        
+        indo = np.where(data['m'] != 29.999)
+        tobs = data['t'][indo]
+        mobs = data['m'][indo]
+        eobs = data['e'][indo]
+        tcen = data['t'][np.where(data['m'] == 29.999)]
+
+        # instantiate Censor object
+        cmodel = c2.Censored(tobs, mobs, eobs, tcen, name = catalog['ID'][miras[jj]])
+
+        # do Lomb-scargle search to get top few periods
+        nper = 3 # number of periods to initialize over
+        Pinit = period_lombc(tobs, mobs, eobs, tcen, n_per = nper,df=1e-5)
+        #    Ps = periods_lomb(tobs, mobs, eobs)
+        print Pinit
+
+        p0 = cmodel.get_init_par(Pinit[0])
+        if np.isnan(cmodel.log_likelihood(p0)):
+            continue
+
+        lliks = []
+        params = np.zeros((nper,10))
+        for i in np.arange(nper):
+            # initial guess for model parameters
+            # params:     P,A0,A1,B1,su2,B,VB,Vsig,S,VS
+            p0 = cmodel.get_init_par(Pinit[i])
+            print p0
+            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=200)
+            print pfmin
+            params[i,:] = pfmin
+            lliks.append(cmodel.log_likelihood(pfmin))
+
+        # optimal parameter vector
+        pstar = params[np.argmax(lliks),:]
+        print pstar
+
+        # save result as line in txt file
+        np.savetxt(path + 'plots/bestpar_'+ catalog['ID'][miras[jj]] + '.dat', pstar)
+
+        # plot folded model with new / old method
+        plt.clf()
+        ax = plt.subplot(111)
+        cmodel.plot(ax, pstar, fold=True)
+        plt.savefig(path + 'plots/bestfit_'+ catalog['ID'][miras[jj]] +'_new.png')
+
+        pold = pstar
+        pold[0] = catalog['P'][miras[jj]]
+        plt.clf()
+        ax = plt.subplot(111)
+        cmodel.plot(ax, pstar, fold=True, plot_model = False)
+        plt.savefig(path + 'plots/bestfit_'+ catalog['ID'][miras[jj]] +'_old.png')
 
     
 

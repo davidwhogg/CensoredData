@@ -121,11 +121,13 @@ class Censored:
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
 
-    def plot(self, ax, par, fold = False):
+    def plot(self, ax, par, fold = False, plot_model = True):
         '''
         input:
         - ax: matplotlib axes object
         - par: set of hyperparameters
+        - fold: if True plot folded light curve, else unfolded
+        - plot_model: if True plot light curve model
 
         usage:
             plt.clf()
@@ -165,15 +167,18 @@ class Censored:
             ax.plot(x - mediant + 1., self.f, 'ko', alpha=0.5, mec='k')
             hogg_errorbar(ax, x - mediant + 1., self.f, self.ef)
             ax.plot(xc - mediant + 1., np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
-        
-        mup = self.mu(tp, omega, A0, A1, B1)
-        ax.plot(xp - mediant, mup + np.sqrt(s2mu), 'b-', alpha=0.25)
-        ax.plot(xp - mediant, mup,                 'b-', alpha=0.50)
-        ax.plot(xp - mediant, mup - np.sqrt(s2mu), 'b-', alpha=0.25)
+        if(plot_model):
+            mup = self.mu(tp, omega, A0, A1, B1)
+            ax.plot(xp - mediant, mup + np.sqrt(s2mu), 'b-', alpha=0.25)
+            ax.plot(xp - mediant, mup,                 'b-', alpha=0.50)
+            ax.plot(xp - mediant, mup - np.sqrt(s2mu), 'b-', alpha=0.25)
         ax.set_xlim(tlim - mediant)
         foo = np.max(self.f + self.ef)
         ax.set_ylim(-0.1 * foo, 1.1 * foo)
-        ax.set_xlabel(r'time $t$ (MJD - %d~d)' % mediant)
+        if(fold):
+            ax.set_xlabel(r'$phi$')
+        else:
+            ax.set_xlabel(r'time $t$ (MJD - %d~d)' % mediant)
         ax.set_ylabel(r'flux $f$ ($\mu$Mgy)')
         ax.set_title(self.name)
         return None
