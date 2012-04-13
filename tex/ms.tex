@@ -228,12 +228,12 @@ To model the mean brightness of the light curve as a function of time, we use a 
 \end{eqnarray}
 where $\mu_i$ is the flux at time $t_i$, $\sqrt{A_k^2 + B_k^2}$ is the amplitude of the $k^{\rm th}$ harmonic of the frequency $\omega$ and $\tan^{-1}(\frac{B_k}{A_k})$ is the relative phase offset of harmonic $k$.  The number of harmonics, $K$, can either be fixed or treated as a free parameter over which to optimize the likelihood.
 
-In addition to the expected brightness in Equation \ref{eq:fourier}, we assume that there is uncertainty or inappropriateness in the model, leading to a \emph{model variance} $s_\mu^2$ at each point (assumed constant but easily generalized) as well as random variation due to photo arrival counts, assumed normal mean 0 with variance $\sigma_i^2$. The reported uncertainties $s_i^2$ are an estimate of the $\sigma_i^2$, see Subsection \ref{sec:uncertainty}. This leads to a true flux measurement of
+In addition to the expected brightness in Equation \ref{eq:fourier}, we assume that there is uncertainty or inappropriateness in the model, leading to a \emph{fractional model variance} $\eta^2$ at each point (assumed constant but easily generalized) as well as random variation due to photo arrival counts, assumed normal mean 0 with variance $\sigma_i^2$. The reported uncertainties $s_i^2$ are an estimate of the $\sigma_i^2$, see Subsection \ref{sec:uncertainty}. This leads to a true flux measurement of
 \begin{eqnarray}\displaystyle
 \ftrue = \mu_i + e_i
 \label{eq:truefluxdef}
 \end{eqnarray}
-where $e_i \sim N(0,s_\mu^2 + \sigma_i^2)$. Recall that this is a latent variable because we will not see it when an observation is censored. We instantiate a latent variable, $b_i$, to represent the detection limit, in units of flux, at epoch $i$.  The $b_i$ parameter is essential because it probabilistically constrains the possible values of the mean brightness, $\mu_i$, of the light curve when there is a non-detection.  By employing a hierarchical model for the distribution of $b_i$, we can fully utilize all of the information encoded in both the detections and non-detections when computing the data likelihood.   At each epoch, we connect the observed flux, $\fobs$, to the latent variable $\ftrue$ by
+where $e_i \sim N(0,\sigma_i^2 + \eta^2\,\mu_i^2$. Recall that this is a latent variable because we will not see it when an observation is censored. We instantiate a latent variable, $b_i$, to represent the detection limit, in units of flux, at epoch $i$.  The $b_i$ parameter is essential because it probabilistically constrains the possible values of the mean brightness, $\mu_i$, of the light curve when there is a non-detection.  By employing a hierarchical model for the distribution of $b_i$, we can fully utilize all of the information encoded in both the detections and non-detections when computing the data likelihood.   At each epoch, we connect the observed flux, $\fobs$, to the latent variable $\ftrue$ by
 \begin{eqnarray}\displaystyle
 \fobs &=& \left\{\begin{array}{ll}
   \ftrue & \mbox{if $\ftrue \ge b_i$} \\
@@ -245,25 +245,22 @@ The observed flux is \texttt{NA} only when the true flux, $\ftrue$, is below the
 Using the model above, the likelihood of the observed $\fobs$ given $\sigma^2_i$, $\theta$ and $I$ (after integrating out the unknown $b_i$) is
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I) &=& \left\{\begin{array}{ll}
-  N(\fobs | \mu_i,  \sigma^2_i + s^2_{\mu})\,  \int_{-\infty}^{\fobs} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
-  \int_{-\infty}^{\infty} \int_{-\infty}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s^2_{\mu})\, p(b_i | \theta)\, \dd \ftrue\, \dd b_i & \mbox{if $\fobs = \texttt{NA}$} \\
+  N(\fobs | \mu_i,  \sigma^2_i + \eta^2\,\mu_i^2)\,  \int_{-\infty}^{\fobs} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
+  \int_{-\infty}^{\infty} \int_{-\infty}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + \eta^2\,\mu_i^2)\, p(b_i | \theta)\, \dd \ftrue\, \dd b_i & \mbox{if $\fobs = \texttt{NA}$} \\
 \end{array}\right.\label{eq:mlik}
 \\
 p(b_i|\theta) &=& N(b_i|B,V_B)
 \label{eq:bprior}
 \\
-\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s^2_\mu, B, V_B, \cdots) \quad ,
+\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, \eta^2, B, V_B, \cdots) \quad ,
 \end{eqnarray}
 where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ up to the observed flux $\fobs$, enforcing that the detection limit be fainter than the observed brightness. Computationally, this requires a call to a Gaussian pdf, a call to a Gaussian cdf, and a multiplication. In the epochs for which no detection was made ($\fobs = \texttt{NA}$), we compute the probability that the unknown detection threshold $b_i$ is greater than the unknown true flux $f_i^*$. When both $b_i$ and $f_i^*$ are normally distributed, this can be computed using a single call to a Gaussian cumulative distribution function.
-%% \begin{equation*}
-%% \mathbb{P}(b_i \geq f_i) = \int_{-\infty}^0 N(x|\mu_i - B,V_B + \sigma_i^2 + s_{\mu}^2) dx
-%% \end{equation*}
 
 In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made at that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle can be inferred from the raw telescope images), we can replace Equation \ref{eq:bprior} with a different distribution per epoch.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
 \begin{eqnarray}\displaystyle
 p(\fobs |\sigma^2_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
-  N(\fobs | \mu_i,  \sigma^2_i + s^2_{\mu})\,  I(\fobs \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
- \int_{-\infty}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + s^2_{\mu})\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
+  N(\fobs | \mu_i,  \sigma^2_i + \eta^2\,\mu_i^2)\,  I(\fobs \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
+ \int_{-\infty}^{b_i} N(\ftrue | \mu_i, \sigma^2_i + \eta^2\,\mu_i^2)\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$} \\
 \end{array}\right.\label{eq:mlik_s}
 \quad ,
 \end{eqnarray}
@@ -302,7 +299,7 @@ Putting it all together, we can write down the likelihood of the data, $D_i$, fo
 \begin{eqnarray}\displaystyle
 p(D_i|\theta,I) &=& \int_0^{\infty} p(\fobs |\sigma^2_i,\theta,I)\, p(\sobs | \fobs, \sigma^2_i,\theta,I)\, p(\sigma^2_i | \theta, I)\,\dd \sigma^2_i
 \\
-\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s^2_\mu, B, V_B, V_{\sigma}, S, V_S) \quad ,
+\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, \eta^2\,\mu_i^2, B, V_B, V_{\sigma}, S, V_S) \quad ,
 \end{eqnarray}
 where we have inserted the expressions from Equations (\ref{eq:mlik}), (\ref{eq:slik}), and (\ref{eq:sigma_prior}), and integrated over the nuisance parameter $\sigma^2_i$.
 
@@ -328,19 +325,6 @@ veracity.
   \caption{The graphical representation of the probability distribution.
     \label{fig:graph}}
 \end{figure}
-
-%% Hence, our initial model consists of the parameter vectors $\{f^*_1,...,f^*_N\}$, $\{b_1,...,b_N\}$ and $\{\sigma^2_1,...,\sigma^2_N\}$, and the model parameters
-%% \begin{eqnarray}\displaystyle
-%% \theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, s^2_\mu, \cdots) \quad ,
-%% \end{eqnarray}
-%% along with prior information about observation times, $\{t_1,...,t_N\}$ and other prior assumptions \joey{we should be more explicit here}, which we make explicit by creating the prior information set
-%% \begin{eqnarray}\displaystyle
-%% I &\equiv& (\{t_i\}_{i=1}^N, \mbox{assumptions}) \quad .
-%% \end{eqnarray}
-%% Our goal is to write down the form of the likelihood of the data, $D$, given $\theta$ and $I$.  Then, for each light curve we can search for the vector $\theta$ that maximizes the data likelihood, and use those maximum likelihood estimates for downstream astrophysical inference.
-
-
-
 
 \subsection{Optimization in Practice}
 \label{ss:optim}
