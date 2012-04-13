@@ -59,8 +59,18 @@ if __name__ == "__main__":
 
     plt.clf()
     ax = plt.subplot(111)
+    cmodel.plot(ax,p0, fold=True)
+    plt.savefig('init_params_folded.png')
+
+    plt.clf()
+    ax = plt.subplot(111)
     cmodel.plot(ax,popt)
     plt.savefig('true_params.png')
+
+    plt.clf()
+    ax = plt.subplot(111)
+    cmodel.plot(ax,popt, fold=True)
+    plt.savefig('true_params_folded.png')
 
 
     prof = True
@@ -68,7 +78,7 @@ if __name__ == "__main__":
         cProfile.run("cmodel.log_likelihood(popt)")
 
 
-    plotmarg = True
+    plotmarg = False
 
     if(plotmarg):
         # make a plot of ll vs. parameter
@@ -108,7 +118,7 @@ if __name__ == "__main__":
         plt.savefig('likelihood_marg.png')
 
 
-    maxlik = True
+    maxlik = False
     if(maxlik):
         #p0 = popt
         #p0 = popt + stats.norm.rvs(0,.01,size=10)

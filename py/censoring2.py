@@ -122,7 +122,7 @@ class Censored:
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
 
-    def plot(self, ax, par):
+    def plot(self, ax, par, fold = False):
         '''
         input:
         - ax: matplotlib axes object
@@ -134,27 +134,43 @@ class Censored:
             cens.plot(ax, par)
             plt.savefig('wtf.png')
         '''
+        def hogg_errorbar(ax, x, y, yerr, color='k', alpha=0.25):
+            for xi,yi,yerri in zip(x,y,yerr):
+                ax.plot([xi, xi], [yi - yerri, yi + yerri], color+'-', alpha=alpha)
+            return None
+        def phase(t, P):
+            return (t/P) % 1.
+        if(fold):
+            x, xc = phase(self.t, par[0]), phase(self.tc, par[0])
+            mediant = 0
+            tlim = np.array([0., 2.])
+            tp = np.linspace(0., par[0]*2., 10000)
+            xp = np.linspace(0., 2., len(tp))
+        else:
+            x, xc = self.t, self.tc
+            alltimes = np.append(self.t, self.tc)
+            mediant = np.round(np.median(alltimes)).astype(int)
+            tlim = np.array([np.min(alltimes), np.max(alltimes)])
+            tp = np.linspace(tlim[0], tlim[1], 10000)
+            xp = tp
         omega = 2. * np.pi / par[0]
         A0 = par[1]
         A1 = par[2]
         B1 = par[3]
         s2mu = par[4]
-        alltimes = np.append(self.t, self.tc)
-        mediant = np.round(np.median(alltimes)).astype(int)
         ax.axhline(0., color='k', alpha=0.25)
-        ax.plot(self.t - mediant, self.f, 'ko', alpha=0.5, mec='k')
-        def hogg_errorbar(ax, x, y, yerr, color='k', alpha=0.25):
-            for xi,yi,yerri in zip(x,y,yerr):
-                ax.plot([xi, xi], [yi - yerri, yi + yerri], color+'-', alpha=alpha)
-            return None
-        hogg_errorbar(ax, self.t - mediant, self.f, self.ef)
-        ax.plot(self.tc - mediant, np.zeros_like(self.tc), 'r.', alpha=0.5, mec='r')
-        tlim = np.array([np.min(alltimes), np.max(alltimes)])
-        tp = np.linspace(tlim[0], tlim[1], 10000)
+        ax.plot(x - mediant, self.f, 'ko', alpha=0.5, mec='k')
+        hogg_errorbar(ax, x - mediant, self.f, self.ef)
+        ax.plot(xc - mediant, np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
+        if(fold):
+            ax.plot(x - mediant + 1., self.f, 'ko', alpha=0.5, mec='k')
+            hogg_errorbar(ax, x - mediant + 1., self.f, self.ef)
+            ax.plot(xc - mediant + 1., np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
+        
         mup = self.mu(tp, omega, A0, A1, B1)
-        ax.plot(tp - mediant, mup + np.sqrt(s2mu), 'b-', alpha=0.25)
-        ax.plot(tp - mediant, mup,                 'b-', alpha=0.50)
-        ax.plot(tp - mediant, mup - np.sqrt(s2mu), 'b-', alpha=0.25)
+        ax.plot(xp - mediant, mup + np.sqrt(s2mu), 'b-', alpha=0.25)
+        ax.plot(xp - mediant, mup,                 'b-', alpha=0.50)
+        ax.plot(xp - mediant, mup - np.sqrt(s2mu), 'b-', alpha=0.25)
         ax.set_xlim(tlim - mediant)
         foo = np.max(self.f + self.ef)
         ax.set_ylim(-0.1 * foo, 1.1 * foo)
