@@ -67,8 +67,8 @@ class Censored:
 
     ## convert all times to expected flux (i.e. t_i -> u_i)
         w =  (2 * np.pi)/ P 
-        self.u  = self.mu(self.t,  w, A0, A1, B1)
-        self.uc = self.mu(self.tc, w, A0, A1, B1)
+        self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1))
+        self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1))
 
     ## compute loglikelihood
         return np.sum(self.loglikelihood_censored(su2,B,VB,S,VS)) + \
@@ -99,7 +99,7 @@ class Censored:
         par = np.zeros(10)
         par[0] = Period
         par[1:4] = self.least_sq(Period)
-        par[4] = (0.5 * par[1])**2
+        par[4] = (0.4 * mag2flux(par[1]))**2
         par[5] = 2.*np.abs(np.min(self.f))
         par[6] = par[5]
         par[7] = np.median(self.ef2)
@@ -112,7 +112,7 @@ class Censored:
         Amat[0,:] = 1.
         Amat[1,:] = self.mu(self.t,2.*np.pi / Period, 0,1,0)
         Amat[2,:] = self.mu(self.t,2.*np.pi / Period, 0,0,1)
-        Atb = np.dot(Amat, self.f)
+        Atb = np.dot(Amat, self.m) # JWR changed to fitting in mag space
         AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
         return np.dot(AtAinv,Atb)
         
@@ -168,7 +168,7 @@ class Censored:
             hogg_errorbar(ax, x - mediant + 1., self.f, self.ef)
             ax.plot(xc - mediant + 1., np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
         if(plot_model):
-            mup = self.mu(tp, omega, A0, A1, B1)
+            mup = mag2flux(self.mu(tp, omega, A0, A1, B1))
             ax.plot(xp - mediant, mup + np.sqrt(s2mu), 'b-', alpha=0.25)
             ax.plot(xp - mediant, mup,                 'b-', alpha=0.50)
             ax.plot(xp - mediant, mup - np.sqrt(s2mu), 'b-', alpha=0.25)

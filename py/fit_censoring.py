@@ -77,7 +77,7 @@ if __name__ == "__main__":
     
 
     #### FOR EACH MIRA IN miras ####
-    for jj in np.arange(1,100):
+    for jj in np.arange(100):
         # load in data from web
         print 'doing mira ' + str(catalog['ID'][miras[jj]]) + ' dotAstro: ' + str(catalog['dID'][miras[jj]])
     
@@ -93,14 +93,16 @@ if __name__ == "__main__":
         cmodel = c2.Censored(tobs, mobs, eobs, tcen, name = catalog['ID'][miras[jj]])
 
         # do Lomb-scargle search to get top few periods
-        nper = 3 # number of periods to initialize over
+        nper = 1 # number of periods to initialize over
         Pinit = period_lombc(tobs, mobs, eobs, tcen, n_per = nper,df=1e-5)
         #    Ps = periods_lomb(tobs, mobs, eobs)
         print Pinit
 
         p0 = cmodel.get_init_par(Pinit[0])
-        if np.isnan(cmodel.log_likelihood(p0)):
+        ll0 = cmodel.log_likelihood(p0)
+        if np.isnan(ll0):
             continue
+        print 'Log-likelihood at p0: ' + str(ll0)
 
         lliks = []
         params = np.zeros((nper,10))
