@@ -58,7 +58,7 @@ class Censored:
         A0 = par[1]
         A1 = par[2]
         B1 = par[3]
-        su2 = par[4]
+        eta2 = par[4]
         B = par[5]
         VB = par[6]
         Vsig = par[7]
@@ -71,35 +71,35 @@ class Censored:
         self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1))
 
     ## compute loglikelihood
-        return np.sum(self.loglikelihood_censored(su2,B,VB,S,VS)) + \
-               np.sum(self.loglikelihood_observed(su2,B,VB,Vsig,S,VS))
+        return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
+               np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
     
-    def loglikelihood_censored(self,su2,B,VB,S,VS):
+    def loglikelihood_censored(self,eta2,B,VB,S,VS):
     ## integrand of equation (12), integrate this across sig2
-        def sig_integrand(sig2,ui,su2,B,VB,S,VS):
-            return  gaussian_cdf(B, ui, VB + sig2 + su2) * gamma_pdf(sig2,S,VS)
-        return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0] \
+        def sig_integrand(sig2,ui,eta2,B,VB,S,VS):
+            return  gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
+        return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,eta2,B,VB,S,VS),epsabs=self.tolquad)[0] \
                        for ui in self.uc])
 
-    def loglikelihood_observed(self,su2,B,VB,Vsig,S,VS):
-        def integrand(sig2,ui,fi,ei2,su2,B,VB,Vsig,S,VS):
+    def loglikelihood_observed(self,eta2,B,VB,Vsig,S,VS):
+        def integrand(sig2,ui,fi,ei2,eta2,B,VB,Vsig,S,VS):
             p_not_cens = gaussian_cdf(fi, B, VB)
-            p_flux = gaussian_pdf(fi, ui, sig2 + su2)
+            p_flux = gaussian_pdf(fi, ui, sig2 + eta2 * ui * ui)
             p_si = gamma_pdf(ei2,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
-        return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
+        return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
                        for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
     def negll(self,par):
         return -1*self.log_likelihood(par)
 
     def get_init_par(self,Period):
-        # params:     P,A0,A1,B1,su2,B,VB,Vsig,S,VS
+        # params:     P,A0,A1,B1,eta2,B,VB,Vsig,S,VS
         par = np.zeros(10)
         par[0] = Period
         par[1:4] = self.least_sq(Period)
-        par[4] = (0.4 * mag2flux(par[1]))**2
+        par[4] = 0.2**2
         par[5] = 2.*np.abs(np.min(self.f))
         par[6] = par[5]
         par[7] = np.median(self.ef2)
@@ -158,7 +158,7 @@ class Censored:
         A0 = par[1]
         A1 = par[2]
         B1 = par[3]
-        s2mu = par[4]
+        eta2 = par[4]
         ax.axhline(0., color='k', alpha=0.25)
         ax.plot(x - mediant, self.f, 'ko', alpha=0.5, mec='k')
         hogg_errorbar(ax, x - mediant, self.f, self.ef)
@@ -169,9 +169,9 @@ class Censored:
             ax.plot(xc - mediant + 1., np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
         if(plot_model):
             mup = mag2flux(self.mu(tp, omega, A0, A1, B1))
-            ax.plot(xp - mediant, mup + np.sqrt(s2mu), 'b-', alpha=0.25)
+            ax.plot(xp - mediant, mup * (1. + np.sqrt(eta2)), 'b-', alpha=0.25)
             ax.plot(xp - mediant, mup,                 'b-', alpha=0.50)
-            ax.plot(xp - mediant, mup - np.sqrt(s2mu), 'b-', alpha=0.25)
+            ax.plot(xp - mediant, mup * (1. + np.sqrt(eta2)), 'b-', alpha=0.25)
         ax.set_xlim(tlim - mediant)
         foo = np.max(self.f + self.ef)
         ax.set_ylim(-0.1 * foo, 1.1 * foo)
