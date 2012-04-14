@@ -228,12 +228,12 @@ To model the mean brightness of the light curve as a function of time, we use a 
 \end{eqnarray}
 where $\mu_i$ is the flux at time $t_i$, $\sqrt{A_k^2 + B_k^2}$ is the amplitude of the $k^{\rm th}$ harmonic of the frequency $\omega$ and $\tan^{-1}(\frac{B_k}{A_k})$ is the relative phase offset of harmonic $k$.  The number of harmonics, $K$, can either be fixed or treated as a free parameter over which to optimize the likelihood.
 
-In addition to the expected brightness in Equation \ref{eq:fourier}, we assume that there is uncertainty or inappropriateness in the model, leading to a \emph{fractional model variance} $\eta^2$ at each point (assumed constant but easily generalized) as well as random variation due to photo arrival counts, assumed normal mean 0 with variance $\sigma_i^2$. The reported uncertainties $s_i^2$ are an estimate of the $\sigma_i^2$, see Subsection \ref{sec:uncertainty}. This leads to a true flux measurement of
+In addition to the expected brightness in Equation \ref{eq:fourier}, we assume that there is uncertainty or inappropriateness in the model, leading to a \emph{fractional model variance} $\eta^2$ at each point (assumed constant but easily generalized) as well as random variation due to photon arrival counts, assumed normal mean 0 with variance $\sigma_i^2$. The reported uncertainties $s_i^2$ are an estimate of the $\sigma_i^2$, see Subsection \ref{sec:uncertainty}. This leads to a true flux measurement of
 \begin{eqnarray}\displaystyle
 \ftrue = \mu_i + e_i
 \label{eq:truefluxdef}
 \end{eqnarray}
-where $e_i \sim N(0,\sigma_i^2 + \eta^2\,\mu_i^2$. Recall that this is a latent variable because we will not see it when an observation is censored. We instantiate a latent variable, $b_i$, to represent the detection limit, in units of flux, at epoch $i$.  The $b_i$ parameter is essential because it probabilistically constrains the possible values of the mean brightness, $\mu_i$, of the light curve when there is a non-detection.  By employing a hierarchical model for the distribution of $b_i$, we can fully utilize all of the information encoded in both the detections and non-detections when computing the data likelihood.   At each epoch, we connect the observed flux, $\fobs$, to the latent variable $\ftrue$ by
+where $e_i \sim N(0,\sigma_i^2 + \eta^2\,\mu_i^2)$. Recall that $f_i^*$ is a latent variable because we will not see it when an observation is censored. We instantiate a latent variable, $b_i$, to represent the detection limit, in units of flux, at epoch $i$.  The $b_i$ parameter is essential because it probabilistically constrains the possible values of the mean brightness, $\mu_i$, of the light curve when there is a non-detection.  By employing a hierarchical model for the distribution of $b_i$, we can fully utilize all of the information encoded in both the detections and non-detections when computing the data likelihood.   At each epoch, we connect the observed flux, $\fobs$, to the latent variable $\ftrue$ by
 \begin{eqnarray}\displaystyle
 \fobs &=& \left\{\begin{array}{ll}
   \ftrue & \mbox{if $\ftrue \ge b_i$} \\
@@ -310,7 +310,7 @@ p(D|\theta,I) &=& \prod_i p(D_i|\theta,I)
 \end{eqnarray}
 This is the likelihood for the entire
 data set (all the measurements and non-detections of this star from
-all the epochs, as delivered by the survey) given the $2K + 5$ parameter vector $\theta$.
+all the epochs, as delivered by the survey) given the $2K + 9$ parameter vector $\theta$.
 Figure \ref{fig:graph} displays a graphical model highlighting dependencies and 
 independence assumptions. This model
 ``correctly'' or at least ``justifiably'' uses all of the information
