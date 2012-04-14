@@ -124,7 +124,7 @@ if __name__ == "__main__":
             # params:     P,A0,A1,B1,su2,B,VB,Vsig,S,VS
             p0 = cmodel.get_init_par(Pinit[i])
             print p0
-            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=2000)
+            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=200)
             #print pfmin
             params[i,:] = pfmin
             lliks.append(cmodel.log_likelihood(pfmin))
@@ -149,7 +149,19 @@ if __name__ == "__main__":
         cmodel.plot(ax, pstar, fold=True, plot_model = False)
         plt.savefig(path + 'plots/bestfit_'+ catalog['ID'][miras[jj]] +'_old.png')
 
-    
+        # plot in magnitudes
+        plt.clf()
+        ax = plt.subplot(111)
+        cmodel.plot(ax, pstar, fold=True, mag=True)
+        plt.savefig(path + 'plots/bestfit_mag_'+ catalog['ID'][miras[jj]] +'_new.png')
+
+        pold = pstar
+        pold[0] = catalog['P'][miras[jj]]
+        plt.clf()
+        ax = plt.subplot(111)
+        cmodel.plot(ax, pstar, fold=True, plot_model = False, mag = True)
+        plt.savefig(path + 'plots/bestfit_mag_'+ catalog['ID'][miras[jj]] +'_old.png')
+
 
 
 

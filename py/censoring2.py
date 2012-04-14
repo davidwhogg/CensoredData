@@ -58,12 +58,12 @@ class Censored:
         A0 = par[1]
         A1 = par[2]
         B1 = par[3]
-        su2 = par[4]
+        eta2 = par[4]**2
         B = par[5]
-        VB = par[6]
-        Vsig = par[7]
+        VB = par[6]**2
+        Vsig = par[7]**2
         S = par[8]
-        VS = par[9]
+        VS = par[9]**2
 
     ## convert all times to expected flux (i.e. t_i -> u_i)
         w =  (2 * np.pi)/ P 
@@ -71,66 +71,56 @@ class Censored:
         self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1))
 
         if(fast):
-            return np.sum(self.loglikelihood_censored(su2,B,VB,S,VS)) + \
-                   np.sum(self.loglikelihood_observed_fast(su2,B,VB,Vsig))
-    ## compute loglikelihood
-        return np.sum(self.loglikelihood_censored(su2,B,VB,S,VS)) + \
-               np.sum(self.loglikelihood_observed(su2,B,VB,Vsig,S,VS))
-
-    def loglikelihood_censored(self,su2,B,VB,S,VS):
-    ## integrand of equation (12), integrate this across sig2
-        def sig_integrand(sig2,ui,su2,B,VB,S,VS):
-            return  gaussian_cdf(B, ui, VB + sig2 + su2) * gamma_pdf(sig2,S,VS)
-        sumll = 0.
-        for ui in self.uc:
-            tmp = integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0]
-            #print tmp
-            sumll += tmp
-        return np.log(sumll)
-        #return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,su2,B,VB,S,VS),epsabs=self.tolquad)[0] \
-        #               for ui in self.uc])
-
-
-    # JWR: finish this function and run it!
-    def loglikelihood_observed_fast(self,su2,B,VB,Vsig):
-        p_not_cens = gaussian_cdf(self.f, B, VB)
-        p_flux = gaussian_pdf(self.f, self.u, self.ef2 + su2)
-        return np.sum(p_not_cens * p_flux)
+            return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
+                   np.sum(self.loglikelihood_observed_fast(eta2,B,VB,Vsig))
+        return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
+               np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
     
+    def loglikelihood_censored(self,eta2,B,VB,S,VS):
+    ## integrand of equation (12), integrate this across sig2
+        def sig_integrand(sig2,ui,eta2,B,VB,S,VS):
+            return  gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
+        return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,eta2,B,VB,S,VS),epsabs=self.tolquad)[0] \
+                       for ui in self.uc])
 
-    def loglikelihood_observed(self,su2,B,VB,Vsig,S,VS):
-        def integrand(sig2,ui,fi,ei2,su2,B,VB,Vsig,S,VS):
+    
+    def loglikelihood_observed_fast(self,eta2,B,VB,Vsig):
+        """
+        Likelihood function for observed data in the case we believe
+        that the reported errors are correct 
+        """
+        p_not_cens = gaussian_cdf(self.f, B, VB)
+        p_flux = gaussian_pdf(self.f, self.u, self.ef2 + eta2 * self.u**2)
+        return np.log(p_not_cens * p_flux)
+
+    def loglikelihood_observed(self,eta2,B,VB,Vsig,S,VS):
+        """
+        loglikelihood_observed_fast was created because this function fails for large values of VS
+        """
+        def integrand(sig2,ui,fi,ei2,eta2,B,VB,Vsig,S,VS):
             p_not_cens = gaussian_cdf(fi, B, VB)
-            p_flux = gaussian_pdf(fi, ui, sig2 + su2)
+            p_flux = gaussian_pdf(fi, ui, sig2 + eta2 * ui * ui)
             p_si = gamma_pdf(ei2,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
-        sumll = 0.
-        for (ui,fi,ei2) in zip(self.u,self.f,self.ef2):
-            tmp = integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]
-            #tmp = integrate.quad(integrand,0.,1.,(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]
-            print tmp, ui, fi, ei2, su2, B, VB, Vsig, S, VS
-            #print integrand(ei2,ui,fi,ei2,su2,B,VB,Vsig,S,VS)
-            #print integrand(0.,ui,fi,ei2,su2,B,VB,Vsig,S,VS)
-            sumll += tmp
-        return np.log(sumll)    
-        #return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,su2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
-        #               for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
+        return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
+                       for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
+
 
     def negll(self,par):
         return -1*self.log_likelihood(par)
 
     def get_init_par(self,Period):
-        # params:     P,A0,A1,B1,su2,B,VB,Vsig,S,VS
+        # params:     P,A0,A1,B1,eta2,B,VB,Vsig,S,VS
         par = np.zeros(10)
         par[0] = Period
         par[1:4] = self.least_sq(Period)
-        par[4] = (1. * mag2flux(par[1]))**2
+        par[4] = 0.2
         par[5] = 2.*np.abs(np.min(self.f))
-        par[6] = par[5]**2
+        par[6] = par[5]
         par[7] = np.median(self.ef2)
         par[8] = par[7]
-        par[9] = par[8]**2 # must be kept small or integration will take too long
+        par[9] = par[8] # must be kept small or integration will take too long
         # also if par[9] is too large, the integration may return nan
         return par
 
@@ -148,7 +138,7 @@ class Censored:
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
 
-    def plot(self, ax, par, fold = False, plot_model = True):
+    def plot(self, ax, par, fold = False, plot_model = True, mag = False):
         '''
         input:
         - ax: matplotlib axes object
@@ -185,28 +175,47 @@ class Censored:
         A0 = par[1]
         A1 = par[2]
         B1 = par[3]
-        s2mu = par[4]
+        eta2 = par[4]**2
         ax.axhline(0., color='k', alpha=0.25)
-        ax.plot(x - mediant, self.f, 'ko', alpha=0.5, mec='k')
-        hogg_errorbar(ax, x - mediant, self.f, self.ef)
-        ax.plot(xc - mediant, np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
+        if(mag):
+            y = self.m
+            ey = self.em
+            yc = np.zeros_like(xc) + np.max(y) + 0.5
+        else:
+            y = self.f
+            ey = self.ef
+            yc = np.zeros_like(xc)
+        ax.plot(x - mediant, y, 'ko', alpha=0.5, mec='k')
+        hogg_errorbar(ax, x - mediant, y, ey)
+        ax.plot(xc - mediant, yc, 'r.', alpha=0.5, mec='r')
         if(fold):
-            ax.plot(x - mediant + 1., self.f, 'ko', alpha=0.5, mec='k')
-            hogg_errorbar(ax, x - mediant + 1., self.f, self.ef)
-            ax.plot(xc - mediant + 1., np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
+            ax.plot(x - mediant + 1., y, 'ko', alpha=0.5, mec='k')
+            hogg_errorbar(ax, x - mediant + 1., y, ey)
+            ax.plot(xc - mediant + 1., yc, 'r.', alpha=0.5, mec='r')
         if(plot_model):
-            mup = mag2flux(self.mu(tp, omega, A0, A1, B1))
-            ax.plot(xp - mediant, mup + np.sqrt(s2mu), 'b-', alpha=0.25)
-            ax.plot(xp - mediant, mup,                 'b-', alpha=0.50)
-            ax.plot(xp - mediant, mup - np.sqrt(s2mu), 'b-', alpha=0.25)
+            if(mag):
+                mup = self.mu(tp, omega, A0, A1, B1)
+                mup_p = mup + 1.086 * np.sqrt(eta2)
+                mup_m = mup - 1.086 * np.sqrt(eta)
+            else:
+                mup = mag2flux(self.mu(tp, omega, A0, A1, B1))
+                mup_p = mup * (1. + np.sqrt(eta2))
+                mup_m = mup * (1. - np.sqrt(eta2))
+            ax.plot(xp - mediant, mup_p, 'b-', alpha=0.25)
+            ax.plot(xp - mediant, mup, 'b-', alpha=0.50)
+            ax.plot(xp - mediant, mup_m, 'b-', alpha=0.25)
         ax.set_xlim(tlim - mediant)
-        foo = np.max(self.f + self.ef)
-        ax.set_ylim(-0.1 * foo, 1.1 * foo)
+        if(mag):
+            ax.set_ylim(np.max(y) + 1., np.min(y) - 0.5)
+            ax.set_ylabel(r'magnitude $m$ (mag)')
+        else:
+            foo = np.max(y + ey)
+            ax.set_ylim(-0.1 * foo, 1.1 * foo)
+            ax.set_ylabel(r'flux $f$ ($\mu$Mgy)')
         if(fold):
             ax.set_xlabel(r'$\phi$')
         else:
             ax.set_xlabel(r'time $t$ (MJD - %d~d)' % mediant)
-        ax.set_ylabel(r'flux $f$ ($\mu$Mgy)')
         ax.set_title(self.name)
         return None
 
@@ -215,6 +224,9 @@ oneoversqrt2pi = 1./np.sqrt(2.*np.pi)
 oneoversqrt2 = 1./np.sqrt(2)
 
 def gaussian_pdf(x, mean, var):
+    #if(np.any(var <= 0)):
+    #    print x, mean, var
+    #    raise Exception
     return (oneoversqrt2pi/np.sqrt(var) * np.exp(-0.5 * (x - mean)**2 / var) )
 
 def gaussian_cdf(x, mean, var):
