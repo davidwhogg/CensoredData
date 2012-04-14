@@ -196,7 +196,7 @@ class Censored:
             if(mag):
                 mup = self.mu(tp, omega, A0, A1, B1)
                 mup_p = mup + 1.086 * np.sqrt(eta2)
-                mup_m = mup - 1.086 * np.sqrt(eta)
+                mup_m = mup - 1.086 * np.sqrt(eta2)
             else:
                 mup = mag2flux(self.mu(tp, omega, A0, A1, B1))
                 mup_p = mup * (1. + np.sqrt(eta2))
