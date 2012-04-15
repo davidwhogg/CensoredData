@@ -7,8 +7,8 @@ This code is synchronized with the document tex/ms.tex
 Issues:
 - limits on gamma integrations are made up (sensitivity not checked)
 - make it possible to insert estimated (or known) upper limits
-- need a folded version of the plot
 - need a magnitude version of the plot
+- quad returns nan when VB and VS get very large; consider rescaling fluxes to order unity
 """
 
 import numpy as np
@@ -48,7 +48,7 @@ class Censored:
     def mu(self, times, omega, A0, A1, B1):
         return A0 + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
         
-    def log_likelihood(self,par):
+    def log_likelihood(self,par, fast = True):
         """ 
         computes log p(D|theta,I)
         everything else: same notation as paper (all floats)
@@ -58,19 +58,21 @@ class Censored:
         A0 = par[1]
         A1 = par[2]
         B1 = par[3]
-        eta2 = par[4]
+        eta2 = par[4]**2
         B = par[5]
-        VB = par[6]
-        Vsig = par[7]
+        VB = par[6]**2
+        Vsig = par[7]**2
         S = par[8]
-        VS = par[9]
+        VS = par[9]**2
 
     ## convert all times to expected flux (i.e. t_i -> u_i)
         w =  (2 * np.pi)/ P 
         self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1))
         self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1))
 
-    ## compute loglikelihood
+        if(fast):
+            return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
+                   np.sum(self.loglikelihood_observed_fast(eta2,B,VB,Vsig))
         return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
                np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
     
@@ -81,7 +83,20 @@ class Censored:
         return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,eta2,B,VB,S,VS),epsabs=self.tolquad)[0] \
                        for ui in self.uc])
 
+    
+    def loglikelihood_observed_fast(self,eta2,B,VB,Vsig):
+        """
+        Likelihood function for observed data in the case we believe
+        that the reported errors are correct 
+        """
+        p_not_cens = gaussian_cdf(self.f, B, VB)
+        p_flux = gaussian_pdf(self.f, self.u, self.ef2 + eta2 * self.u**2)
+        return np.log(p_not_cens * p_flux)
+
     def loglikelihood_observed(self,eta2,B,VB,Vsig,S,VS):
+        """
+        loglikelihood_observed_fast was created because this function fails for large values of VS
+        """
         def integrand(sig2,ui,fi,ei2,eta2,B,VB,Vsig,S,VS):
             p_not_cens = gaussian_cdf(fi, B, VB)
             p_flux = gaussian_pdf(fi, ui, sig2 + eta2 * ui * ui)
@@ -91,6 +106,7 @@ class Censored:
         return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
                        for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
+
     def negll(self,par):
         return -1*self.log_likelihood(par)
 
@@ -99,12 +115,13 @@ class Censored:
         par = np.zeros(10)
         par[0] = Period
         par[1:4] = self.least_sq(Period)
-        par[4] = 0.2**2
+        par[4] = 0.2
         par[5] = 2.*np.abs(np.min(self.f))
         par[6] = par[5]
         par[7] = np.median(self.ef2)
         par[8] = par[7]
         par[9] = par[8] # must be kept small or integration will take too long
+        # also if par[9] is too large, the integration may return nan
         return par
 
     def least_sq(self,Period):
@@ -121,7 +138,7 @@ class Censored:
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
 
-    def plot(self, ax, par, fold = False, plot_model = True):
+    def plot(self, ax, par, fold = False, plot_model = True, mag = False):
         '''
         input:
         - ax: matplotlib axes object
@@ -158,28 +175,47 @@ class Censored:
         A0 = par[1]
         A1 = par[2]
         B1 = par[3]
-        eta2 = par[4]
+        eta2 = par[4]**2
         ax.axhline(0., color='k', alpha=0.25)
-        ax.plot(x - mediant, self.f, 'ko', alpha=0.5, mec='k')
-        hogg_errorbar(ax, x - mediant, self.f, self.ef)
-        ax.plot(xc - mediant, np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
+        if(mag):
+            y = self.m
+            ey = self.em
+            yc = np.zeros_like(xc) + np.max(y) + 0.5
+        else:
+            y = self.f
+            ey = self.ef
+            yc = np.zeros_like(xc)
+        ax.plot(x - mediant, y, 'ko', alpha=0.5, mec='k')
+        hogg_errorbar(ax, x - mediant, y, ey)
+        ax.plot(xc - mediant, yc, 'r.', alpha=0.5, mec='r')
         if(fold):
-            ax.plot(x - mediant + 1., self.f, 'ko', alpha=0.5, mec='k')
-            hogg_errorbar(ax, x - mediant + 1., self.f, self.ef)
-            ax.plot(xc - mediant + 1., np.zeros_like(xc), 'r.', alpha=0.5, mec='r')
+            ax.plot(x - mediant + 1., y, 'ko', alpha=0.5, mec='k')
+            hogg_errorbar(ax, x - mediant + 1., y, ey)
+            ax.plot(xc - mediant + 1., yc, 'r.', alpha=0.5, mec='r')
         if(plot_model):
-            mup = mag2flux(self.mu(tp, omega, A0, A1, B1))
-            ax.plot(xp - mediant, mup * (1. + np.sqrt(eta2)), 'b-', alpha=0.25)
-            ax.plot(xp - mediant, mup,                 'b-', alpha=0.50)
-            ax.plot(xp - mediant, mup * (1. + np.sqrt(eta2)), 'b-', alpha=0.25)
+            if(mag):
+                mup = self.mu(tp, omega, A0, A1, B1)
+                mup_p = mup + 1.086 * np.sqrt(eta2)
+                mup_m = mup - 1.086 * np.sqrt(eta2)
+            else:
+                mup = mag2flux(self.mu(tp, omega, A0, A1, B1))
+                mup_p = mup * (1. + np.sqrt(eta2))
+                mup_m = mup * (1. - np.sqrt(eta2))
+            ax.plot(xp - mediant, mup_p, 'b-', alpha=0.25)
+            ax.plot(xp - mediant, mup, 'b-', alpha=0.50)
+            ax.plot(xp - mediant, mup_m, 'b-', alpha=0.25)
         ax.set_xlim(tlim - mediant)
-        foo = np.max(self.f + self.ef)
-        ax.set_ylim(-0.1 * foo, 1.1 * foo)
+        if(mag):
+            ax.set_ylim(np.max(y) + 1., np.min(y) - 0.5)
+            ax.set_ylabel(r'magnitude $m$ (mag)')
+        else:
+            foo = np.max(y + ey)
+            ax.set_ylim(-0.1 * foo, 1.1 * foo)
+            ax.set_ylabel(r'flux $f$ ($\mu$Mgy)')
         if(fold):
-            ax.set_xlabel(r'$phi$')
+            ax.set_xlabel(r'$\phi$')
         else:
             ax.set_xlabel(r'time $t$ (MJD - %d~d)' % mediant)
-        ax.set_ylabel(r'flux $f$ ($\mu$Mgy)')
         ax.set_title(self.name)
         return None
 
@@ -188,7 +224,11 @@ oneoversqrt2pi = 1./np.sqrt(2.*np.pi)
 oneoversqrt2 = 1./np.sqrt(2)
 
 def gaussian_pdf(x, mean, var):
-    return (oneoversqrt2pi/np.sqrt(var) * np.exp(-0.5 * (x - mean)**2 / var) )    
+    #if(np.any(var <= 0)):
+    #    print x, mean, var
+    #    raise Exception
+    return (oneoversqrt2pi/np.sqrt(var) * np.exp(-0.5 * (x - mean)**2 / var) )
+
 def gaussian_cdf(x, mean, var):
     return .5*(1. + erf(oneoversqrt2 * (x - mean)/np.sqrt(var)) ) # look up correct form
 
