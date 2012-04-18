@@ -223,10 +223,16 @@ where $(\fobs, \sobs)$ are the light curve measurements  at $t_i$.  The goal, fo
 \subsection{Modeling Non-Detections}
 To model the mean brightness of the light curve as a function of time, we use a multiple-harmonic Fourier model with angular oscillation frequency $\omega$,
 \begin{eqnarray}\displaystyle
-\mu_i &=& A_0 + \sum_{k=1}^K A_k\, \sin (t_i \, \omega  k) + B_k\, \cos (t_i \, \omega  k)
+\mu_i' &=& A_0 + \sum_{k=1}^K A_k\, \sin (t_i \, \omega  k) + B_k\, \cos (t_i \, \omega  k)
 \quad ,\label{eq:fourier}
 \end{eqnarray}
-where $\mu_i$ is the flux at time $t_i$, $\sqrt{A_k^2 + B_k^2}$ is the amplitude of the $k^{\rm th}$ harmonic of the frequency $\omega$ and $\tan^{-1}(\frac{B_k}{A_k})$ is the relative phase offset of harmonic $k$.  The number of harmonics, $K$, can either be fixed or treated as a free parameter over which to optimize the likelihood.
+where $\mu_i'$ is the model brightness estimate in magnitude at time $t_i$, $\sqrt{A_k^2 + B_k^2}$ is the amplitude of the $k^{\rm th}$ harmonic of the frequency $\omega$ and $\tan^{-1}(\frac{B_k}{A_k})$ is the relative phase offset of harmonic $k$.  The number of harmonics, $K$, can either be fixed or treated as a free parameter over which to optimize the likelihood.
+
+We model the brightness in magnitude because periodic variation in magnitude is more sinusoidal than in flux. However since errors are more Gaussian in flux space, we convert the $u_i'$ to flux measurements using
+\begin{equation*}
+\mu_i = 10^6 \times 10^{-.4 \mu_i'}
+\end{equation*}
+Now both the model predictions $\mu_i$ and the data $(f_i,s_i)$ are in flux.
 
 In addition to the expected brightness in Equation \ref{eq:fourier}, we assume that there is uncertainty or inappropriateness in the model, leading to a \emph{fractional model variance} $\eta^2$ at each point (assumed constant but easily generalized) as well as random variation due to photon arrival counts, assumed normal mean 0 with variance $\sigma_i^2$. The reported uncertainties $s_i^2$ are an estimate of the $\sigma_i^2$, see Subsection \ref{sec:uncertainty}. This leads to a true flux measurement of
 \begin{eqnarray}\displaystyle
