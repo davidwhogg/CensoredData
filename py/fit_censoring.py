@@ -87,14 +87,18 @@ if __name__ == "__main__":
 
     # select all miras (P(Mira) > 0.75 and anom_score < 3.0)
     miras = np.where(np.logical_and(catalog['Pmira'] > 0.75 , catalog['anom'] < 3.))[0] # 2538 mira variables
-    
+
+    new_periods = np.zeros((len(miras),3),dtype=[('ID','S10'), ('oldP',np.float), ('newP',np.float)])
 
     #### FOR EACH MIRA IN miras ####
     for jj in np.arange(0,100):
 #    for jj in np.arange(486,487):
         # load in data from web
         print 'doing mira ' + str(catalog['ID'][miras[jj]]) + ' dotAstro: ' + str(catalog['dID'][miras[jj]])
-    
+
+        new_periods[jj,0] = catalog['ID'][miras[jj]]
+        new_periods[jj,1] = catalog['P'][miras[jj]]
+        
         data = load_lc_from_web(catalog['ID'][miras[jj]])
         
         indo = np.where(data['m'] != 29.999)
@@ -102,16 +106,18 @@ if __name__ == "__main__":
         mobs = data['m'][indo]
         eobs = data['e'][indo]
         tcen = data['t'][np.where(data['m'] == 29.999)]
+        # print 'Censored observations: ' + str(tcen)
 
         # instantiate Censor object
         cmodel = c2.Censored(tobs, mobs, eobs, tcen, name = catalog['ID'][miras[jj]], tolquad=1.)
 
         # do Lomb-scargle search to get top few periods
-        nper = 1 # number of periods to initialize over
+        nper = 2. # number of periods to initialize over
         Pinit = period_lombc(tobs, mobs, eobs, tcen, n_per = nper,df=1e-5)
         #Porig = periods_lomb(tobs, mobs, eobs, n_per = nper)
-        print Pinit
+        #print Pinit
         #print Porig
+        
 
         p0 = cmodel.get_init_par(Pinit[0])
         ll0 = cmodel.log_likelihood(p0, fast=True)
@@ -125,22 +131,31 @@ if __name__ == "__main__":
             #continue
 
         lliks = []
-        params = np.zeros((nper,10))
+        params = np.zeros((2*nper,10))
         for i in np.arange(nper):
             # initial guess for model parameters
             # params:     P,A0,A1,B1,su2,B,VB,Vsig,S,VS
-            p0 = cmodel.get_init_par(Pinit[i])
-            print p0
-            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=200)
-            #print pfmin
-            params[i,:] = pfmin
-            lliks.append(cmodel.log_likelihood(pfmin))
-            print lliks
 
+            # initialized at Nat's period
+            p0 = cmodel.get_init_par(Pinit[i])
+            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=500,fast=True)
+            #print pfmin
+            params[(2*i - 1),:] = pfmin
+            lliks.append(cmodel.log_likelihood(pfmin))
+
+            # initialized at twice Nat's period
+            p0 = cmodel.get_init_par(2 * Pinit[i])
+            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=500,fast=True)
+            params[(2*i),:] = pfmin
+            lliks.append(cmodel.log_likelihood(pfmin))
+
+
+        print lliks
         print 'Optimized log-likelihood: ' + str(np.max(lliks))
         # optimal parameter vector
         pstar = params[np.argmax(lliks),:]
         #print pstar
+        new_periods[jj,2] = pstar[0]
 
         print 'New Period: ' + str(round(pstar[0],2))
         print 'Old Period: ' + str(round(catalog['P'][miras[jj]],3))
@@ -180,6 +195,6 @@ if __name__ == "__main__":
 
 
 
-    
+new_periods.tofile(path + "data/new_periods.dat", sep=",")
 
 

@@ -79,9 +79,11 @@ class Censored:
     def loglikelihood_censored(self,eta2,B,VB,S,VS):
     ## integrand of equation (12), integrate this across sig2
         def sig_integrand(sig2,ui,eta2,B,VB,S,VS):
-            return  gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
-        return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,eta2,B,VB,S,VS),epsabs=self.tolquad)[0] \
-                       for ui in self.uc])
+            #print 'gauss: ' +  str(gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui))
+            #print gamma_pdf(sig2,S,VS)
+            return gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
+        return np.log([integrate.quad(sig_integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(ui,eta2,B,VB,S,VS),\
+                                      epsabs=self.tolquad)[0] for ui in self.uc])
 
     
     def loglikelihood_observed_fast(self,eta2,B,VB,Vsig):
@@ -103,8 +105,8 @@ class Censored:
             p_si = gamma_pdf(ei2,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
-        return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
-                       for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
+        return np.log([integrate.quad(integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),\
+                                      epsabs=self.tolquad)[0] for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
 
     def negll(self, par, fast=True):
@@ -236,7 +238,10 @@ def gaussian_cdf(x, mean, var):
 def gamma_pdf(x,mean,var):
     theta = var / mean
     k = mean / theta
-    return (1 / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta) # look this up (normalization)
+    pdf = (1. / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta)
+    if pdf == np.inf:
+        return 1.
+    return  pdf # look this up (normalization)
 
 def gamma_cdf(x,mean,var):
     theta = var / mean
@@ -252,7 +257,8 @@ def flux2mag(f, f0 = 1.e6):
     return -2.5 * np.log10(f/f0)
 
 def magerr2fluxerr(m, merr, f0 = 1.e6):
-    return 0.5 * (mag2flux(m - merr, f0) - mag2flux(m + merr, f0))
+    #return 0.5 * (mag2flux(m - merr, f0) - mag2flux(m + merr, f0))
+    return f0 * 0.4 * np.log(10) * 10**(-0.4 * m) * merr
 
 def unittests():
     assert(np.abs(1. - integrate.quad(gaussian_pdf,-20.,20.,(1.322,1.532))[0]) < 1.e-7)
