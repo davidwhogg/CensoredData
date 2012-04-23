@@ -48,7 +48,7 @@ class Censored:
     def mu(self, times, omega, A0, A1, B1):
         return A0 + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
         
-    def log_likelihood(self,par, fast = True):
+    def log_likelihood(self, par, fast = True):
         """ 
         computes log p(D|theta,I)
         everything else: same notation as paper (all floats)
@@ -107,8 +107,8 @@ class Censored:
                        for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
 
-    def negll(self,par):
-        return -1*self.log_likelihood(par)
+    def negll(self, par, fast=True):
+        return -1*self.log_likelihood(par, fast=fast)
 
     def get_init_par(self,Period):
         # params:     P,A0,A1,B1,eta2,B,VB,Vsig,S,VS
@@ -133,8 +133,8 @@ class Censored:
         AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
         return np.dot(AtAinv,Atb)
         
-    def optim_fmin(self,p0,maxiter=1000,ftol=0.0001,xtol=0.0001,mfev=1.e8):
-        opt = op.fmin(self.negll, p0, maxiter=maxiter,ftol=ftol,maxfun=mfev)
+    def optim_fmin(self, p0, maxiter=1000, ftol=0.0001, xtol=0.0001, mfev=1.e8, fast=True):
+        opt = op.fmin(self.negll, p0, args = (fast,), maxiter=maxiter,ftol=ftol,maxfun=mfev)
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
 
@@ -145,6 +145,7 @@ class Censored:
         - par: set of hyperparameters
         - fold: if True plot folded light curve, else unfolded
         - plot_model: if True plot light curve model
+        - mag: if True plot in mag space, else in flux space
 
         usage:
             plt.clf()
@@ -160,7 +161,7 @@ class Censored:
             return (t/P) % 1.
         if(fold):
             x, xc = phase(self.t, par[0]), phase(self.tc, par[0])
-            mediant = 0
+            mediant = 0.
             tlim = np.array([0., 2.])
             tp = np.linspace(0., par[0]*2., 10000)
             xp = np.linspace(0., 2., len(tp))
@@ -188,7 +189,7 @@ class Censored:
         ax.plot(x - mediant, y, 'ko', alpha=0.5, mec='k')
         hogg_errorbar(ax, x - mediant, y, ey)
         ax.plot(xc - mediant, yc, 'r.', alpha=0.5, mec='r')
-        if(fold):
+        if(fold): # if fold, plot 2 phases of LC
             ax.plot(x - mediant + 1., y, 'ko', alpha=0.5, mec='k')
             hogg_errorbar(ax, x - mediant + 1., y, ey)
             ax.plot(xc - mediant + 1., yc, 'r.', alpha=0.5, mec='r')
