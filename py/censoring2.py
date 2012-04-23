@@ -48,7 +48,7 @@ class Censored:
     def mu(self, times, omega, A0, A1, B1):
         return A0 + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
         
-    def log_likelihood(self,par, fast = True):
+    def log_likelihood(self, par, fast = True):
         """ 
         computes log p(D|theta,I)
         everything else: same notation as paper (all floats)
@@ -79,9 +79,11 @@ class Censored:
     def loglikelihood_censored(self,eta2,B,VB,S,VS):
     ## integrand of equation (12), integrate this across sig2
         def sig_integrand(sig2,ui,eta2,B,VB,S,VS):
-            return  gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
-        return np.log([integrate.quad(sig_integrand,0.,S+5*np.sqrt(VS),(ui,eta2,B,VB,S,VS),epsabs=self.tolquad)[0] \
-                       for ui in self.uc])
+            #print 'gauss: ' +  str(gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui))
+            #print gamma_pdf(sig2,S,VS)
+            return gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
+        return np.log([integrate.quad(sig_integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(ui,eta2,B,VB,S,VS),\
+                                      epsabs=self.tolquad)[0] for ui in self.uc])
 
     
     def loglikelihood_observed_fast(self,eta2,B,VB,Vsig):
@@ -103,12 +105,12 @@ class Censored:
             p_si = gamma_pdf(ei2,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
-        return np.log([integrate.quad(integrand,0.,S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),epsabs=self.tolquad)[0]\
-                       for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
+        return np.log([integrate.quad(integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),\
+                                      epsabs=self.tolquad)[0] for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
 
-    def negll(self,par):
-        return -1*self.log_likelihood(par)
+    def negll(self, par, fast=True):
+        return -1*self.log_likelihood(par, fast=fast)
 
     def get_init_par(self,Period):
         # params:     P,A0,A1,B1,eta2,B,VB,Vsig,S,VS
@@ -133,8 +135,8 @@ class Censored:
         AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
         return np.dot(AtAinv,Atb)
         
-    def optim_fmin(self,p0,maxiter=1000,ftol=0.0001,xtol=0.0001,mfev=1.e8):
-        opt = op.fmin(self.negll, p0, maxiter=maxiter,ftol=ftol,maxfun=mfev)
+    def optim_fmin(self, p0, maxiter=1000, ftol=0.0001, xtol=0.0001, mfev=1.e8, fast=True):
+        opt = op.fmin(self.negll, p0, args = (fast,), maxiter=maxiter,ftol=ftol,maxfun=mfev)
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
 
@@ -145,6 +147,7 @@ class Censored:
         - par: set of hyperparameters
         - fold: if True plot folded light curve, else unfolded
         - plot_model: if True plot light curve model
+        - mag: if True plot in mag space, else in flux space
 
         usage:
             plt.clf()
@@ -160,7 +163,7 @@ class Censored:
             return (t/P) % 1.
         if(fold):
             x, xc = phase(self.t, par[0]), phase(self.tc, par[0])
-            mediant = 0
+            mediant = 0.
             tlim = np.array([0., 2.])
             tp = np.linspace(0., par[0]*2., 10000)
             xp = np.linspace(0., 2., len(tp))
@@ -188,7 +191,7 @@ class Censored:
         ax.plot(x - mediant, y, 'ko', alpha=0.5, mec='k')
         hogg_errorbar(ax, x - mediant, y, ey)
         ax.plot(xc - mediant, yc, 'r.', alpha=0.5, mec='r')
-        if(fold):
+        if(fold): # if fold, plot 2 phases of LC
             ax.plot(x - mediant + 1., y, 'ko', alpha=0.5, mec='k')
             hogg_errorbar(ax, x - mediant + 1., y, ey)
             ax.plot(xc - mediant + 1., yc, 'r.', alpha=0.5, mec='r')
@@ -235,7 +238,10 @@ def gaussian_cdf(x, mean, var):
 def gamma_pdf(x,mean,var):
     theta = var / mean
     k = mean / theta
-    return (1 / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta) # look this up (normalization)
+    pdf = (1. / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta)
+    if pdf == np.inf:
+        return 1.
+    return  pdf # look this up (normalization)
 
 def gamma_cdf(x,mean,var):
     theta = var / mean
@@ -251,7 +257,8 @@ def flux2mag(f, f0 = 1.e6):
     return -2.5 * np.log10(f/f0)
 
 def magerr2fluxerr(m, merr, f0 = 1.e6):
-    return 0.5 * (mag2flux(m - merr, f0) - mag2flux(m + merr, f0))
+    #return 0.5 * (mag2flux(m - merr, f0) - mag2flux(m + merr, f0))
+    return f0 * 0.4 * np.log(10) * 10**(-0.4 * m) * merr
 
 def unittests():
     assert(np.abs(1. - integrate.quad(gaussian_pdf,-20.,20.,(1.322,1.532))[0]) < 1.e-7)
