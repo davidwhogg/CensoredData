@@ -94,7 +94,7 @@ if __name__ == "__main__":
     for jj in np.arange(0,100):
 #    for jj in np.arange(486,487):
         # load in data from web
-        print 'doing mira ' + str(catalog['ID'][miras[jj]]) + ' dotAstro: ' + str(catalog['dID'][miras[jj]])
+        print 'doing mira ' + str(jj) + ': ' + str(catalog['ID'][miras[jj]]) + ' dotAstro: ' + str(catalog['dID'][miras[jj]])
 
         new_periods[jj,0] = catalog['ID'][miras[jj]]
         new_periods[jj,1] = catalog['P'][miras[jj]]
@@ -140,13 +140,13 @@ if __name__ == "__main__":
             p0 = cmodel.get_init_par(Pinit[i])
             pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=500,fast=True)
             #print pfmin
-            params[(2*i - 1),:] = pfmin
+            params[(2*i),:] = pfmin
             lliks.append(cmodel.log_likelihood(pfmin))
 
             # initialized at twice Nat's period
             p0 = cmodel.get_init_par(2 * Pinit[i])
             pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=500,fast=True)
-            params[(2*i),:] = pfmin
+            params[((2*i)+1),:] = pfmin
             lliks.append(cmodel.log_likelihood(pfmin))
 
 
