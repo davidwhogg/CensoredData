@@ -26,11 +26,18 @@ import urllib2 as ulib
 
 from fit_censoring import *
 
-global nper
+#global nper
 nper = 2
 
-global path
-path = '.'
+#global path
+path = '../'
+
+#global catalog
+cat_data = np.loadtxt(path + 'data/asas_class_catalog_v2_3.dat',\
+                     usecols=(0,1,4,5,6,9,37), skiprows=1,\
+                     dtype=[('ID','S20'), ('dID','i4'), ('class','S20'), ('Pclass',np.float), \
+                            ('anom',np.float64), ('Pmira',np.float), ('P','f16')], delimiter=',')
+
 
 def doMira(ind, catalog):
     """
@@ -38,7 +45,6 @@ def doMira(ind, catalog):
     multiprocessing module to analyze the entire ASAS Mira data set
     """
 
-    
     print '   #### doing mira ' + ': ' + str(catalog['ID'][ind]) +\
           ' dotAstro: ' + str(catalog['dID'][ind])
 
@@ -135,23 +141,21 @@ def doMira(ind, catalog):
     
     return catalog['ID'][ind]
 
+def doMira_partial(ind):
+    return doMira(ind, cat_data)
 
 if __name__ == '__main__':
 
-    from functools import partial
+#    from functools import partial
 
-    cat_data = np.loadtxt(path + 'data/asas_class_catalog_v2_3.dat',\
-                          usecols=(0,1,4,5,6,9,37), skiprows=1,\
-                          dtype=[('ID','S20'), ('dID','i4'), ('class','S20'), ('Pclass',np.float), \
-                                 ('anom',np.float64), ('Pmira',np.float), ('P','f16')], delimiter=',')
 
-    partial_doMira = partial(doMira, catalog=cat_data)
+#    partial_doMira = partial(doMira, catalog=cat_data)
 
     p_mira = 0.75
     miras = np.where(np.logical_and(cat_data['Pmira'] > p_mira , cat_data['anom'] < 3.))[0] 
 
     pool = Pool(processes=2)
 
-    result = pool.map(partial_doMira, miras[0:4])
+    result = pool.map(doMira_partial, miras[0:4])
     pool.close()
     pool.join()
