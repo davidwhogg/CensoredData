@@ -65,7 +65,7 @@ def find_peaks(x):
 def load_lc_from_web(ID):
     urlpath = 'http://www.astrouw.edu.pl/cgi-asas/asas_cgi_get_data?'
     ur = ulib.urlopen( urlpath + ID + ',asas3')#open url
-    miradata = np.loadtxt(ur.readlines(), usecols=(0,2,7,11), \
+    miradata = np.loadtxt(ur, usecols=(0,2,7,11), \
                           dtype=[('t',np.float64), ('m',np.float64), ('e',np.float64),\
                                  ('grade','S2')])
     use = np.where(np.logical_and(np.logical_and(miradata['grade'] != 'D',miradata['grade'] != 'F'),\
