@@ -52,7 +52,7 @@ class Censored:
         """ 
         computes log p(D|theta,I)
         everything else: same notation as paper (all floats)
-        hella ugly unpacking from par[]; you're so hella NorCal
+        hella ugly unpacking from par[]
         """
         P = par[0]
         A0 = par[1]
@@ -77,12 +77,15 @@ class Censored:
                np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
     
     def loglikelihood_censored(self,eta2,B,VB,S,VS):
-    ## integrand of equation (12), integrate this across sig2
+        """
+        likelihood function for censored data
+        integrand of equation (12), integrated across sig2
+        """
         def sig_integrand(sig2,ui,eta2,B,VB,S,VS):
             #print 'gauss: ' +  str(gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui))
             #print gamma_pdf(sig2,S,VS)
             return gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
-        return np.log([integrate.quad(sig_integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(ui,eta2,B,VB,S,VS),\
+        return np.log([integrate.quad(sig_integrand,np.max([0.,S-3.*np.sqrt(VS)]),S+3.*np.sqrt(VS),(ui,eta2,B,VB,S,VS),\
                                       epsabs=self.tolquad)[0] for ui in self.uc])
 
     
@@ -97,6 +100,7 @@ class Censored:
 
     def loglikelihood_observed(self,eta2,B,VB,Vsig,S,VS):
         """
+        log likelihood function for observed data, marginalizing over the sig2
         loglikelihood_observed_fast was created because this function fails for large values of VS
         """
         def integrand(sig2,ui,fi,ei2,eta2,B,VB,Vsig,S,VS):
@@ -105,14 +109,20 @@ class Censored:
             p_si = gamma_pdf(ei2,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
-        return np.log([integrate.quad(integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),\
+        return np.log([integrate.quad(integrand,np.max([0.,S-3.*np.sqrt(VS)]),S+3.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),\
                                       epsabs=self.tolquad)[0] for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
 
     def negll(self, par, fast=True):
+        """
+        negative log-likelihood function for use with fmin
+        """
         return -1*self.log_likelihood(par, fast=fast)
 
     def get_init_par(self,Period):
+        """
+        quick guess for initial parameters employing least squares
+        """
         # params:     P,A0,A1,B1,eta2,B,VB,Vsig,S,VS
         par = np.zeros(10)
         par[0] = Period
@@ -127,6 +137,9 @@ class Censored:
         return par
 
     def least_sq(self,Period):
+        """
+        least squares fit for A0, A1, B1 at a fixed (given) period
+        """
         Amat = np.zeros( (3,len(self.t)))
         Amat[0,:] = 1.
         Amat[1,:] = self.mu(self.t,2.*np.pi / Period, 0,1,0)
@@ -136,6 +149,9 @@ class Censored:
         return np.dot(AtAinv,Atb)
         
     def optim_fmin(self, p0, maxiter=1000, ftol=0.0001, xtol=0.0001, mfev=1.e8, fast=True):
+        """
+        maximize the log-likelihood function with respect to the 9 model parameters
+        """
         opt = op.fmin(self.negll, p0, args = (fast,), maxiter=maxiter,ftol=ftol,maxfun=mfev)
         #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
@@ -222,6 +238,8 @@ class Censored:
         ax.set_title(self.name)
         return None
 
+
+##################################
 # PDFs and CDFs of normal and Gamma distributions
 oneoversqrt2pi = 1./np.sqrt(2.*np.pi)
 oneoversqrt2 = 1./np.sqrt(2)
@@ -248,6 +266,7 @@ def gamma_cdf(x,mean,var):
     k = mean / theta
     return  gammainc(k,x/theta) ## wikipedia and scipy define imcomplete gamma differently
 
+################################
 # flux to mag conversions
 
 def mag2flux(m, f0 = 1.e6):
@@ -260,6 +279,7 @@ def magerr2fluxerr(m, merr, f0 = 1.e6):
     #return 0.5 * (mag2flux(m - merr, f0) - mag2flux(m + merr, f0))
     return f0 * 0.4 * np.log(10) * 10**(-0.4 * m) * merr
 
+# unit tests
 def unittests():
     assert(np.abs(1. - integrate.quad(gaussian_pdf,-20.,20.,(1.322,1.532))[0]) < 1.e-7)
     assert(np.abs(1. - integrate.quad(gamma_pdf,0,50.,(1.322,1.532))[0]) < 1.e-7)
