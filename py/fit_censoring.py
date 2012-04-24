@@ -16,8 +16,6 @@ import urllib2 as ulib
 
 import pdb
 
-sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
-                                      '/Algorithms/fitcurve'))
 from lomb_scargle import lomb as lomb
 from lomb_scargle_refine import lomb as lombr
 from lomb_scargle_censor import lomb as lombc
@@ -99,7 +97,7 @@ if __name__ == "__main__":
 #                                                 ('newP',np.float), ('newA',np.float),('llik',np.float)])
 
     #### FOR EACH MIRA IN miras ####
-    for jj in np.arange(0,10):
+    for jj in np.arange(0,2):
     #for jj in np.arange(486,487):
         # load in data from web
         print '   #### doing mira ' + str(jj) + ': ' + str(catalog['ID'][miras[jj]]) \
