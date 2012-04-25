@@ -24,7 +24,7 @@ import scipy.optimize as op
 
 class Censored:
 
-    def __init__(self, t, m, em, tc, name = "Awesome LC", tolquad = 0.1):
+    def __init__(self, t, m, em, tc, b = None, name = "Awesome LC", tolquad = 0.1):
         """ 
         t: times when not censored (1-d ndarray)
         f: flux when not censored (1-d ndarray)
@@ -41,6 +41,7 @@ class Censored:
         self.ef = magerr2fluxerr(self.m, self.em)
         self.ef2 = self.ef**2
         self.name = name
+        self.b = b # known upper limits, if given
         
         unittests()
         return None
@@ -70,11 +71,19 @@ class Censored:
         self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1))
         self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1))
 
-        if(fast):
+        if(self.b==None): # if no upper limits are given
+            if(fast):
+                return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
+                       np.sum(self.loglikelihood_observed_fast(eta2,B,VB,Vsig))
             return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
-                   np.sum(self.loglikelihood_observed_fast(eta2,B,VB,Vsig))
-        return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
-               np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
+                   np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
+        else: # if upper limits are given ONLY FOR CENSORED DATA
+            assert(len(self.b) == len(self.tc))
+            if(fast):
+                return np.sum(self.loglikelihood_bgiven_censored(eta2,S,VS)) + \
+                       np.sum(self.loglikelihood_observed_fast(eta2,Vsig))
+            return np.sum(self.loglikelihood_bgiven_censored(eta2,S,VS)) + \
+                   np.sum(self.loglikelihood_observed(eta2,Vsig,S,VS))
     
     def loglikelihood_censored(self,eta2,B,VB,S,VS):
         """
@@ -87,8 +96,7 @@ class Censored:
             return gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
         return np.log([integrate.quad(sig_integrand,np.max([0.,S-3.*np.sqrt(VS)]),S+3.*np.sqrt(VS),(ui,eta2,B,VB,S,VS),\
                                       epsabs=self.tolquad)[0] for ui in self.uc])
-
-    
+   
     def loglikelihood_observed_fast(self,eta2,B,VB,Vsig):
         """
         Likelihood function for observed data in the case we believe
@@ -112,6 +120,16 @@ class Censored:
         return np.log([integrate.quad(integrand,np.max([0.,S-3.*np.sqrt(VS)]),S+3.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),\
                                       epsabs=self.tolquad)[0] for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
+    def loglikelihood_bgiven_censored(self,eta2,S,VS):
+        """
+        likelihood function for censored data, when bi is given for each censored datum
+        integrand of equation (12), integrated across sig2
+        """
+        def sig_integrand(sig2,bi,ui,eta2,S,VS):
+            return gaussian_cdf(bi, ui, sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
+        return np.log([integrate.quad(sig_integrand,np.max([0.,S-3.*np.sqrt(VS)]),S+3.*np.sqrt(VS),(bi,ui,eta2,S,VS),\
+                                      epsabs=self.tolquad)[0] for (bi,ui) in zip(self.b,self.uc)])
+   
 
     def negll(self, par, fast=True):
         """
