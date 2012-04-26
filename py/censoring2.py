@@ -80,6 +80,8 @@ class Censored:
             self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, B0), f0=self.f0)
             self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1, B0), f0=self.f0)
 
+        #print 'muc = ' + str(self.uc)
+        #print 'muc mag = ' + str(self.mu(self.tc, w, A0, A1, B1, B0))
         #print 'P=' + str(P) + 'A0 = ' + str(A0)+ ' A1 = '+ str(A1)+' B1 = '+ str(B1)
         #print 'eta2 = ' + str(eta2)+ ' B = '+ str(B)+' VB = '+ str(VB)+ ' S = '+ str(S)+ ' VS = '+ str(VS)
         #print np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS))
@@ -106,7 +108,7 @@ class Censored:
             #print 'gauss: ' +  str(gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui))
             #print gamma_pdf(sig2,S,VS)
             return gaussian_cdf(B, ui, VB + sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
-        return np.log([integrate.quad(sig_integrand,np.max([0.,S-3.*np.sqrt(VS)]),S+3.*np.sqrt(VS),(ui,eta2,B,VB,S,VS),\
+        return np.log([integrate.quad(sig_integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(ui,eta2,B,VB,S,VS),\
                                       epsabs=self.tolquad)[0] for ui in self.uc])
    
     def loglikelihood_observed_fast(self,eta2,B,VB,Vsig):
@@ -312,9 +314,13 @@ def gaussian_pdf(x, mean, var):
     #if(np.any(var <= 0)):
     #    print x, mean, var
     #    raise Exception
+    if(np.any(var < 1.e-20)):
+        return 1.e-10
     return (oneoversqrt2pi/np.sqrt(var) * np.exp(-0.5 * (x - mean)**2 / var) )
 
 def gaussian_cdf(x, mean, var):
+    if(np.any(var < 1.e-20)):
+        return 1.e-10
     return .5*(1. + erf(oneoversqrt2 * (x - mean)/np.sqrt(var)) ) # look up correct form
 
 def gamma_pdf(x,mean,var):
@@ -328,13 +334,6 @@ def gamma_pdf(x,mean,var):
         return 1.e-10
     return pdf
 
-    # if div < 1e-100:
-    #     return 1.
-    # pdf = (1. / div) *  (x**(k-1.)) * np.exp(-x / theta)
-    # if pdf == np.inf:
-    #     return 1.
-    # return  pdf # look this up (normalization)
-
 def gamma_cdf(x,mean,var):
     theta = var / mean
     k = mean / theta
@@ -343,7 +342,10 @@ def gamma_cdf(x,mean,var):
 ################################
 # flux to mag conversions
 
-def mag2flux(m, f0 = 1.e6):
+def mag2flux(m, f0 = 1.e6, lim = -10.):
+    if(np.min(m) < lim):
+        #print "mag below brightness limit; altering"
+        m[np.where(m < lim)[0]] = lim
     return f0 * 10**(-0.4*m)
 
 def flux2mag(f, f0 = 1.e6):
