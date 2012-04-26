@@ -97,8 +97,8 @@ if __name__ == "__main__":
 #                                                 ('newP',np.float), ('newA',np.float),('llik',np.float)])
 
     #### FOR EACH MIRA IN miras ####
-    for jj in np.arange(22,23):
-    #for jj in np.arange(486,487):
+    for jj in np.arange(1,2):
+    #for jj in np.arange(440,441):
         # load in data from web
         print '   #### doing mira ' + str(jj) + ': ' + str(catalog['ID'][miras[jj]]) \
               + ' dotAstro: ' + str(catalog['dID'][miras[jj]])
@@ -148,22 +148,24 @@ if __name__ == "__main__":
 
             # initialized at Nat's period
             p0 = cmodel.get_init_par(Pinit[i])
-            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=500,fast=True)
+#            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,mfev=500,fast=True)
+            pfmin = cmodel.optim_fmin_bfgs(p0,maxiter=1000,gtol=1.e-1,fast=True)
             #print pfmin
             params[(2*i),:] = pfmin
             lliks.append(cmodel.log_likelihood(pfmin))
 
             # initialized at twice Nat's period
             p0 = cmodel.get_init_par(2 * Pinit[i])
-            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=500,fast=True)
+            #pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,mfev=500,fast=True)
+            pfmin = cmodel.optim_fmin_bfgs(p0,maxiter=1000,gtol=1.e-1,fast=True)
             params[((2*i)+1),:] = pfmin
             lliks.append(cmodel.log_likelihood(pfmin))
 
 
         print lliks
-        print 'Optimized log-likelihood: ' + str(np.max(lliks))
+        print 'Optimized log-likelihood: ' + str(np.nanmax(lliks))
         # optimal parameter vector
-        pstar = params[np.argmax(lliks),:]
+        pstar = params[np.where(lliks==np.nanmax(lliks))[0],:][0]
         #print pstar
         new_periods[0][3] = pstar[0]
         new_periods[0][4] = np.sqrt(pstar[2]**2 + pstar[3]**2)

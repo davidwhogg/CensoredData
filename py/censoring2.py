@@ -71,6 +71,9 @@ class Censored:
         self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1))
         self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1))
 
+        #print 'P=' + str(P) + 'A0 = ' + str(A0)+ ' A1 = '+ str(A1)+' B1 = '+ str(B1)
+        #print 'eta2 = ' + str(eta2)+ ' B = '+ str(B)+' VB = '+ str(VB)+ ' S = '+ str(S)+ ' VS = '+ str(VS)
+        #print np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS))
         if(self.b==None): # if no upper limits are given
             if(fast):
                 return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
@@ -104,6 +107,9 @@ class Censored:
         """
         p_not_cens = gaussian_cdf(self.f, B, VB)
         p_flux = gaussian_pdf(self.f, self.u, self.ef2 + eta2 * self.u**2)
+        logarg = p_not_cens * p_flux
+        if np.min(logarg) < 1.e-300:
+            logarg[np.where(logarg < 1.e-300)[0]] = 1.e-1
         return np.log(p_not_cens * p_flux)
 
     def loglikelihood_observed(self,eta2,B,VB,Vsig,S,VS):
@@ -117,7 +123,7 @@ class Censored:
             p_si = gamma_pdf(ei2,sig2,Vsig)
             p_sig2 = gamma_pdf(sig2,S,VS)
             return p_not_cens * p_flux * p_si * p_sig2
-        return np.log([integrate.quad(integrand,np.max([0.,S-3.*np.sqrt(VS)]),S+3.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),\
+        return np.log([integrate.quad(integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(ui,fi,ei2,eta2,B,VB,Vsig,S,VS),\
                                       epsabs=self.tolquad)[0] for (ui,fi,ei2) in zip(self.u,self.f,self.ef2)])
 
     def loglikelihood_bgiven_censored(self,eta2,S,VS):
@@ -127,7 +133,7 @@ class Censored:
         """
         def sig_integrand(sig2,bi,ui,eta2,S,VS):
             return gaussian_cdf(bi, ui, sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
-        return np.log([integrate.quad(sig_integrand,np.max([0.,S-3.*np.sqrt(VS)]),S+3.*np.sqrt(VS),(bi,ui,eta2,S,VS),\
+        return np.log([integrate.quad(sig_integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(bi,ui,eta2,S,VS),\
                                       epsabs=self.tolquad)[0] for (bi,ui) in zip(self.b,self.uc)])
    
 
@@ -148,7 +154,7 @@ class Censored:
         par[4] = 0.2
         par[5] = 2.*np.abs(np.min(self.f))
         par[6] = par[5]
-        par[7] = np.median(self.ef2)
+        par[7] = np.median(self.ef) # JWR changed from ef2 to ef
         par[8] = par[7]
         par[9] = par[8] # must be kept small or integration will take too long
         # also if par[9] is too large, the integration may return nan
@@ -171,8 +177,16 @@ class Censored:
         maximize the log-likelihood function with respect to the 9 model parameters
         """
         opt = op.fmin(self.negll, p0, args = (fast,), maxiter=maxiter,ftol=ftol,maxfun=mfev)
-        #opt = op.fmin_bfgs(self.negll, p0, gtol=ftol, maxiter=maxiter)
         return opt
+
+    def optim_fmin_bfgs(self, p0, maxiter=1000, gtol=0.0001, fast=True):
+        """
+        maximize the log-likelihood function with respect to the 9 model parameters using BFGS
+        """
+        opt = op.fmin_bfgs(self.negll, p0, args = (fast,), gtol=gtol, maxiter=maxiter)
+        return opt
+
+
 
     def plot(self, ax, par, fold = False, plot_model = True, mag = False):
         '''
@@ -274,10 +288,20 @@ def gaussian_cdf(x, mean, var):
 def gamma_pdf(x,mean,var):
     theta = var / mean
     k = mean / theta
-    pdf = (1. / ((theta**k)*gamma(k))) *  (x**(k-1.)) * np.exp(-x / theta)
-    if pdf == np.inf:
-        return 1.
-    return  pdf # look this up (normalization)
+    if(np.log(gamma(k)) == np.inf):
+        return 1.e-10
+    #print 'gamma PDF: ' + str(-k*np.log(theta)) +' ' + str(np.log(gamma(k))) + ' '+ str((k-1.)*np.log(x)) + ' ' +str(x/theta)
+    pdf = np.exp(-k*np.log(theta) - np.log(gamma(k)) + (k-1.)*np.log(x) - x/theta)
+    if(pdf == np.inf or pdf == -1*np.inf):
+        return 1.e-10
+    return pdf
+
+    # if div < 1e-100:
+    #     return 1.
+    # pdf = (1. / div) *  (x**(k-1.)) * np.exp(-x / theta)
+    # if pdf == np.inf:
+    #     return 1.
+    # return  pdf # look this up (normalization)
 
 def gamma_cdf(x,mean,var):
     theta = var / mean
