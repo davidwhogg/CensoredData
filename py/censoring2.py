@@ -60,10 +60,10 @@ class Censored:
         A1 = par[2]
         B1 = par[3]
         eta2 = par[4]**2
-        B = par[5]
+        B = np.abs(par[5])
         VB = par[6]**2
         Vsig = par[7]**2
-        S = par[8]
+        S = np.abs(par[8])
         VS = par[9]**2
 
     ## convert all times to expected flux (i.e. t_i -> u_i)
@@ -109,8 +109,8 @@ class Censored:
         p_flux = gaussian_pdf(self.f, self.u, self.ef2 + eta2 * self.u**2)
         logarg = p_not_cens * p_flux
         if np.min(logarg) < 1.e-300:
-            logarg[np.where(logarg < 1.e-300)[0]] = 1.e-1
-        return np.log(p_not_cens * p_flux)
+            logarg[np.where(logarg < 1.e-300)[0]] = 1.e-100
+        return np.log(logarg)
 
     def loglikelihood_observed(self,eta2,B,VB,Vsig,S,VS):
         """
@@ -175,6 +175,7 @@ class Censored:
     def optim_fmin(self, p0, maxiter=1000, ftol=0.0001, xtol=0.0001, mfev=1.e8, fast=True):
         """
         maximize the log-likelihood function with respect to the 9 model parameters
+        fmin is more robust to numerical errors, as it can find its way out of nan's and inf's
         """
         opt = op.fmin(self.negll, p0, args = (fast,), maxiter=maxiter,ftol=ftol,maxfun=mfev)
         return opt
@@ -182,6 +183,7 @@ class Censored:
     def optim_fmin_bfgs(self, p0, maxiter=1000, gtol=0.0001, fast=True):
         """
         maximize the log-likelihood function with respect to the 9 model parameters using BFGS
+        BFGS often converges in fewer iterations, but will check out on a nan or inf
         """
         opt = op.fmin_bfgs(self.negll, p0, args = (fast,), gtol=gtol, maxiter=maxiter)
         return opt

@@ -74,11 +74,11 @@ def doMira(ind, catalog):
     # do Lomb-scargle search to get top few periods
     Pinit = period_lombc(tobs, mobs, eobs, tcen, n_per = nper,df=1e-5)
     p0 = cmodel.get_init_par(Pinit[0])
-    ll0 = cmodel.log_likelihood(p0, fast=True)
+    #ll0 = cmodel.log_likelihood(p0, fast=True)
 
-    print 'Log-likelihood at p0: ' + str(ll0)
-    if np.isnan(ll0):
-        raise Exception
+    #print 'Log-likelihood at p0: ' + str(ll0)
+    #if np.isnan(ll0):
+    #    raise Exception
 
     lliks = []
     params = np.zeros((2*nper,10))
@@ -96,9 +96,9 @@ def doMira(ind, catalog):
         lliks.append(cmodel.log_likelihood(pfmin))
 
     print lliks
-    print 'Optimized log-likelihood: ' + str(np.max(lliks))
+    print 'Optimized log-likelihood: ' + str(np.nanmax(lliks))
     # optimal parameter vector
-    pstar = params[np.argmax(lliks),:]
+    pstar = params[np.where(lliks==np.nanmax(lliks))[0],:][0]
     new_periods[0][3] = pstar[0]
     new_periods[0][4] = np.sqrt(pstar[2]**2 + pstar[3]**2)
     new_periods[0][5] = np.max(lliks)
@@ -107,7 +107,7 @@ def doMira(ind, catalog):
     print 'Old Period: ' + str(round(Porig,3))
         
     # save result as line in txt file
-    np.savetxt(path + 'plots/bestpar_'+ catalog['ID'][ind] + '.dat', pstar)
+#    np.savetxt(path + 'plots/bestpar_'+ catalog['ID'][ind] + '.dat', pstar)
     
     # plot folded model with new method
     plt.clf()
@@ -128,8 +128,6 @@ def doMira(ind, catalog):
     cmodel.plot(ax, pold, fold=True, plot_model = False)
     plt.savefig(path + 'plots/bestfit_'+ catalog['ID'][ind] +'_old.png')
     # plot in mags
-    pold = pstar
-    pold[0] = catalog['P'][ind]
     plt.clf()
     ax = plt.subplot(111)
     cmodel.plot(ax, pold, fold=True, plot_model = False, mag = True)
@@ -146,16 +144,11 @@ def doMira_partial(ind):
 
 if __name__ == '__main__':
 
-#    from functools import partial
-
-
-#    partial_doMira = partial(doMira, catalog=cat_data)
-
     p_mira = 0.75
     miras = np.where(np.logical_and(cat_data['Pmira'] > p_mira , cat_data['anom'] < 3.))[0] 
 
     pool = Pool(processes=2)
 
-    result = pool.map(doMira_partial, miras[0:4])
+    result = pool.map(doMira_partial, miras)
     pool.close()
     pool.join()

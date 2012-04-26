@@ -20,7 +20,7 @@ from lomb_scargle import lomb as lomb
 from lomb_scargle_refine import lomb as lombr
 from lomb_scargle_censor import lomb as lombc
 
-path = '/Users/jwrichar/Documents/CDI/CensoredData/'
+path = '../'
 
 def periods_lomb(t, f, e, n_per=3,f0=1./1000,df=1e-5,fn=1./50.,plot=False):
 
@@ -29,7 +29,7 @@ def periods_lomb(t, f, e, n_per=3,f0=1./1000,df=1e-5,fn=1./50.,plot=False):
     ftest = 1.*f
     P_cand = []
     for i in xrange(n_per):
-        psd,res = lombr(t,ftest,e,f0,df,numf, detrend_order=1,nharm=8)
+        psd,res = lombr(t,ftest,e,f0,df,numf, detrend_order=1,nharm=1)
         if(plot):
             plt.plot(freqgrid,psd)
             plt.show()
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 #                                                 ('newP',np.float), ('newA',np.float),('llik',np.float)])
 
     #### FOR EACH MIRA IN miras ####
-    for jj in np.arange(1,2):
+    for jj in np.arange(0,10):
     #for jj in np.arange(440,441):
         # load in data from web
         print '   #### doing mira ' + str(jj) + ': ' + str(catalog['ID'][miras[jj]]) \
@@ -148,16 +148,16 @@ if __name__ == "__main__":
 
             # initialized at Nat's period
             p0 = cmodel.get_init_par(Pinit[i])
-#            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,mfev=500,fast=True)
-            pfmin = cmodel.optim_fmin_bfgs(p0,maxiter=1000,gtol=1.e-1,fast=True)
+            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,mfev=1000,fast=True)
+            #pfmin = cmodel.optim_fmin_bfgs(p0,maxiter=1000,gtol=1.e-1,fast=True)
             #print pfmin
             params[(2*i),:] = pfmin
             lliks.append(cmodel.log_likelihood(pfmin))
 
             # initialized at twice Nat's period
             p0 = cmodel.get_init_par(2 * Pinit[i])
-            #pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,mfev=500,fast=True)
-            pfmin = cmodel.optim_fmin_bfgs(p0,maxiter=1000,gtol=1.e-1,fast=True)
+            pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,mfev=1000,fast=True)
+            #pfmin = cmodel.optim_fmin_bfgs(p0,maxiter=1000,gtol=1.e-1,fast=True)
             params[((2*i)+1),:] = pfmin
             lliks.append(cmodel.log_likelihood(pfmin))
 
