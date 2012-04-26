@@ -24,7 +24,7 @@ import scipy.optimize as op
 
 class Censored:
 
-    def __init__(self, t, m, em, tc, b = None, name = "Awesome LC", tolquad = 0.1):
+    def __init__(self, t, m, em, tc, b = None, f0 = 1.e6, name = "Awesome LC", tolquad = 0.1):
         """ 
         t: times when not censored (1-d ndarray)
         f: flux when not censored (1-d ndarray)
@@ -32,22 +32,25 @@ class Censored:
         tc: times of censored observations (1-d ndarray)
         """      
         self.tolquad = tolquad # numerical tolerance in integration
+        self.f0 = f0
         # insert data 
         self.t = t
         self.m = m
         self.em = em
         self.tc = tc
-        self.f = mag2flux(self.m)
-        self.ef = magerr2fluxerr(self.m, self.em)
+        self.f = mag2flux(self.m, f0=self.f0)
+        self.ef = magerr2fluxerr(self.m, self.em, f0=self.f0)
         self.ef2 = self.ef**2
         self.name = name
         self.b = b # known upper limits, if given
+        if(self.b != None):
+            self.bf = mag2flux(self.b, f0 = self.f0)
         
         unittests()
         return None
 
-    def mu(self, times, omega, A0, A1, B1):
-        return A0 + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
+    def mu(self, times, omega, A0, A1, B1, B0=0.):
+        return A0 + B0 * times + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
         
     def log_likelihood(self, par, fast = True):
         """ 
@@ -65,11 +68,17 @@ class Censored:
         Vsig = par[7]**2
         S = np.abs(par[8])
         VS = par[9]**2
+        if len(par) > 10:
+            B0 = par[10]
 
     ## convert all times to expected flux (i.e. t_i -> u_i)
-        w =  (2 * np.pi)/ P 
-        self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1))
-        self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1))
+        w =  (2 * np.pi)/ P
+        if len(par) == 10:
+            self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, B0 = 0.), f0=self.f0)
+            self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1, B0 = 0.), f0=self.f0)
+        else:
+            self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, B0), f0=self.f0)
+            self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1, B0), f0=self.f0)
 
         #print 'P=' + str(P) + 'A0 = ' + str(A0)+ ' A1 = '+ str(A1)+' B1 = '+ str(B1)
         #print 'eta2 = ' + str(eta2)+ ' B = '+ str(B)+' VB = '+ str(VB)+ ' S = '+ str(S)+ ' VS = '+ str(VS)
@@ -84,9 +93,9 @@ class Censored:
             assert(len(self.b) == len(self.tc))
             if(fast):
                 return np.sum(self.loglikelihood_bgiven_censored(eta2,S,VS)) + \
-                       np.sum(self.loglikelihood_observed_fast(eta2,Vsig))
+                       np.sum(self.loglikelihood_observed_fast(eta2,B,VB,Vsig))
             return np.sum(self.loglikelihood_bgiven_censored(eta2,S,VS)) + \
-                   np.sum(self.loglikelihood_observed(eta2,Vsig,S,VS))
+                   np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
     
     def loglikelihood_censored(self,eta2,B,VB,S,VS):
         """
@@ -133,8 +142,11 @@ class Censored:
         """
         def sig_integrand(sig2,bi,ui,eta2,S,VS):
             return gaussian_cdf(bi, ui, sig2 + eta2 * ui * ui) * gamma_pdf(sig2,S,VS)
+        #print 'bf: ' + str(self.bf) + ' uc: ' + str(self.uc)
+        #print 'S: ' + str(S) + ' VS: ' + str(VS) + ' eta2: ' + str(eta2)
+        #print np.log([sig_integrand(S,bi,ui,eta2,S,VS) for (bi,ui) in zip(self.bf,self.uc)])
         return np.log([integrate.quad(sig_integrand,np.max([0.,S-5.*np.sqrt(VS)]),S+5.*np.sqrt(VS),(bi,ui,eta2,S,VS),\
-                                      epsabs=self.tolquad)[0] for (bi,ui) in zip(self.b,self.uc)])
+                                      epsabs=self.tolquad)[0] for (bi,ui) in zip(self.bf,self.uc)])
    
 
     def negll(self, par, fast=True):
@@ -143,14 +155,20 @@ class Censored:
         """
         return -1*self.log_likelihood(par, fast=fast)
 
-    def get_init_par(self,Period):
+    def get_init_par(self, Period, fitslope=False):
         """
         quick guess for initial parameters employing least squares
         """
         # params:     P,A0,A1,B1,eta2,B,VB,Vsig,S,VS
-        par = np.zeros(10)
+        if(fitslope):
+            par = np.zeros(11)
+        else:
+            par = np.zeros(10)
         par[0] = Period
-        par[1:4] = self.least_sq(Period)
+        ls = self.least_sq(Period, fitslope)
+        par[1:4] = ls[0:3]
+        if(fitslope):
+            par[10] = ls[3]
         par[4] = 0.2
         par[5] = 2.*np.abs(np.min(self.f))
         par[6] = par[5]
@@ -160,17 +178,22 @@ class Censored:
         # also if par[9] is too large, the integration may return nan
         return par
 
-    def least_sq(self,Period):
+    def least_sq(self,Period, fitslope=False):
         """
         least squares fit for A0, A1, B1 at a fixed (given) period
         """
-        Amat = np.zeros( (3,len(self.t)))
+        if(fitslope):
+            Amat = np.zeros( (4,len(self.t)))
+        else:
+            Amat = np.zeros( (3,len(self.t)))
         Amat[0,:] = 1.
         Amat[1,:] = self.mu(self.t,2.*np.pi / Period, 0,1,0)
         Amat[2,:] = self.mu(self.t,2.*np.pi / Period, 0,0,1)
-        Atb = np.dot(Amat, self.m) # JWR changed to fitting in mag space
+        if(fitslope):
+            Amat[3,:] = self.t
+        Atb = np.dot(Amat, self.m) 
         AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
-        return np.dot(AtAinv,Atb)
+        return np.dot(AtAinv,Atb).tolist()[0]
         
     def optim_fmin(self, p0, maxiter=1000, ftol=0.0001, xtol=0.0001, mfev=1.e8, fast=True):
         """
@@ -229,11 +252,18 @@ class Censored:
         A1 = par[2]
         B1 = par[3]
         eta2 = par[4]**2
+        if len(par) > 10:
+            B0 = par[10]
+        else:
+            B0 = 0.
         ax.axhline(0., color='k', alpha=0.25)
         if(mag):
             y = self.m
             ey = self.em
-            yc = np.zeros_like(xc) + np.max(y) + 0.5
+            if(self.b == None):
+                yc = np.zeros_like(xc) + np.max(y) + 0.5
+            else:
+                yc = self.b
         else:
             y = self.f
             ey = self.ef
@@ -247,11 +277,11 @@ class Censored:
             ax.plot(xc - mediant + 1., yc, 'r.', alpha=0.5, mec='r')
         if(plot_model):
             if(mag):
-                mup = self.mu(tp, omega, A0, A1, B1)
+                mup = self.mu(tp, omega, A0, A1, B1, B0)
                 mup_p = mup + 1.086 * np.sqrt(eta2)
                 mup_m = mup - 1.086 * np.sqrt(eta2)
             else:
-                mup = mag2flux(self.mu(tp, omega, A0, A1, B1))
+                mup = mag2flux(self.mu(tp, omega, A0, A1, B1, B0), f0=self.f0)
                 mup_p = mup * (1. + np.sqrt(eta2))
                 mup_m = mup * (1. - np.sqrt(eta2))
             ax.plot(xp - mediant, mup_p, 'b-', alpha=0.25)
