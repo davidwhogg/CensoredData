@@ -50,7 +50,7 @@ def doMira(ind, catalog):
 
     f = open(path + 'doMira.log', 'a')
     f.write( 'starting mira: ' + str(catalog['ID'][ind]) +\
-          ' dotAstro: ' + str(catalog['dID'][ind])),'\n'
+          ' dotAstro: ' + str(catalog['dID'][ind]) +'\n')
     f.close()
 
     new_periods = np.zeros((1,),dtype=[('ID','S16'), ('oldP',np.float), ('oldA',np.float),\

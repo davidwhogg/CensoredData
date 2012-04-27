@@ -228,7 +228,7 @@ To model the mean brightness of the light curve as a function of time, we use a 
 \end{eqnarray}
 where $\mu_i'$ is the model brightness estimate in magnitude at time $t_i$, $\sqrt{A_k^2 + B_k^2}$ is the amplitude of the $k^{\rm th}$ harmonic of the frequency $\omega$ and $\tan^{-1}(\frac{B_k}{A_k})$ is the relative phase offset of harmonic $k$.  The number of harmonics, $K$, can either be fixed or treated as a free parameter over which to optimize the likelihood.
 
-We model the brightness in magnitude because periodic variation in magnitude is more sinusoidal than in flux. However since errors are more Gaussian in flux space, we convert the $u_i'$ to flux measurements using
+We model the brightness in magnitude because periodic variation in magnitude is more sinusoidal than in flux. However since errors more approximately Gaussian in flux space, we convert the $\mu_i'$ to flux  using
 \begin{equation*}
 \mu_i = 10^6 \times 10^{-0.4 \mu_i'}
 \end{equation*}
@@ -260,7 +260,7 @@ p(b_i|\theta) &=& N(b_i|B,V_B)
 \\
 \theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, \eta^2, B, V_B, \cdots) \quad ,
 \end{eqnarray}
-where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ up to the observed flux $\fobs$, enforcing that the detection limit be fainter than the observed brightness. Computationally, this requires a call to a Gaussian pdf, a call to a Gaussian cdf, and a multiplication. In the epochs for which no detection was made ($\fobs = \texttt{NA}$), we compute the probability that the unknown detection threshold $b_i$ is greater than the unknown true flux $f_i^*$. When both $b_i$ and $f_i^*$ are normally distributed, this can be computed using a single call to a Gaussian cumulative distribution function.
+where we have introduced the hyperparameters $B$ and $V_B$ for the Gaussian prior distribution of $b_i$.  In Equation \ref{eq:mlik}, in the epochs for which a detection was made ($\fobs \ne \texttt{NA}$), we marginalize over the unknown $b_i$ up to the observed flux $\fobs$, enforcing that the detection limit be fainter than the observed brightness. Computationally, this requires a call to a Gaussian probability density function (pdf), a call to a Gaussian cumulative distribution function (cdf), and a multiplication. In the epochs for which no detection was made ($\fobs = \texttt{NA}$), we compute the probability that the unknown detection threshold $b_i$ is greater than the unknown true flux $f_i^*$. When both $b_i$ and $f_i^*$ are normally distributed, this can be computed using a single call to a Gaussian cdf.
 
 In the above, we have assumed no extra information on each of the $b_i$ values besides the knowledge of whether a detection was made at that epoch.  Hence, we draw, in Equation \ref{eq:bprior}, each $b_i$ value from a global prior distribution which is the same at all epochs.  If instead, we are given an estimate of $b_i$ plus its error distribution for each epoch (which, in principle can be inferred from the raw telescope images), we can replace Equation \ref{eq:bprior} with a different distribution per epoch.  In the case that the $b_i$ are assumed to be completely known (without error), the data likelihood of $\fobs$ becomes
 \begin{eqnarray}\displaystyle
@@ -270,13 +270,13 @@ p(\fobs |\sigma^2_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
 \end{array}\right.\label{eq:mlik_s}
 \quad ,
 \end{eqnarray}
-where the boolean indictor function, $I(\ftrue \ge b_i)$, is 1 if $\ftrue \ge b_i$ and 0 otherwise.
+where the boolean indictor function, $I(\fobs \ge b_i)$, is 1 if $\fobs \ge b_i$ and 0 otherwise.
 
 
 
 \subsection{Modeling Uncertainty in Uncertainties}
 \label{sec:uncertainty}
-Instead of assuming that $\sobs$ is a perfect, error-free measurement, we probabilistically connect it to the true photon count uncertainty variance $\sigma^2_i$ through a Gamma likelihood.  Our probability of observed $\sobs$ given $\fobs$, $\sigma^2_i$, $\theta$ and $I$, is
+Instead of assuming that $\sobs$ is a perfect, error-free measurement, we can probabilistically connect it to the true photon flux uncertainty variance $\sigma^2_i$ through a Gamma likelihood.  Our model probability of observed $\sobs$ given $\fobs$, $\sigma^2_i$, $\theta$ and $I$, is
 \begin{eqnarray}\displaystyle
 p(\sobs | \fobs, \sigma^2_i, \theta,I) &=& \left\{\begin{array}{ll}
   \Gamma (\sobs | \sigma^2_i, V_{\sigma} ) & \mbox{if $\fobs \ne \texttt{NA}$} \\
@@ -284,33 +284,34 @@ p(\sobs | \fobs, \sigma^2_i, \theta,I) &=& \left\{\begin{array}{ll}
 \end{array}\right.\label{eq:slik}
 \quad ,
 \end{eqnarray}
-where $\Gamma(x | m, V)$ is the standard Gamma distribution parameterized by its mean $m$ and variance $V$.
-The  model parameter $V_\sigma$ represents the
-variance in the distribution of reported uncertainties given the true
-uncertainty.  (Typically, the Gamma distribution is parameterized by parameters $(\alpha, \beta)$, where the mean is $\alpha\beta$ and the variance is $\alpha\beta^2$.)  The  purpose of
- including the likelihood in Equation \ref{eq:slik} to the model, in practice, is to keep the $\sigma^2_i$ from
-drifting very far away from the $\sobs$, as set by the hyperparameter
-$V_\sigma$. \james{maybe clarify this last sentence. isn't the main reason for having the $V_\sigma$ term because we don't believe the reported variance}
+where $\Gamma(x | m, V)$ is the standard Gamma distribution parameterized by its mean $m$ and variance $V$\footnote{The $\Gamma(x | m, V)$ pdf is $ p(x ) = (\theta^k \Gamma(k))^{-1}  x^{k-1} e^{x/ \theta}$, for $x \ge 0$, where $\theta = V / m$ and $k  = m^2 / V$.}.
+The  model hyperparameter $V_\sigma$ represents the
+variance in the distribution of reported uncertainties around the true
+uncertainty.  Smaller values of $V_\sigma$ represent higher credence given to the reported uncertainties whereas larger values mean that our model is given more flexibility to use observation uncertainties that are far from the reported values.  Ultimately, the model will choose the value of $V_\sigma$, for each light curve, that maximizes the data likelihood.
 
-We place a Gamma prior on the true photon count uncertainties, adding two parameters to our model.
+To complete our model of uncertainties on the reported observational error variances, $s_i^2$, we must place a prior distribution on the true uncertainties, $\sigma_i^2$.  We choose to place a Gamma prior on the true photon flux uncertainties, 
 \begin{eqnarray}\displaystyle
 p(\sigma^2_i|\theta, I) &=& \Gamma(\sigma^2_i | S, V_S)
 \label{eq:sigma_prior}
 \end{eqnarray}
-\james{should probably justify choice of some priors here / include some plots and/or refs. gamma priors and normal priors.}
+adding two parameters, $S$ and $V_S$, to our model.
+\james{should probably justify choice of some priors here / include some plots and/or refs. gamma priors and normal priors.}  This puts us in a position to write down our full likelihood model for light curves containing censored observations.
 
 \subsection{The Full Model}
 \label{sec:full}
 Putting it all together, we can write down the likelihood of the data, $D_i$, for the parameters $\theta$, on a single epoch, as
 \begin{eqnarray}\displaystyle
+\label{eqn:lik}
 p(D_i|\theta,I) &=& \int_0^{\infty} p(\fobs |\sigma^2_i,\theta,I)\, p(\sobs | \fobs, \sigma^2_i,\theta,I)\, p(\sigma^2_i | \theta, I)\,\dd \sigma^2_i
 \\
+\label{eqn:likpar}
 \theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, \eta^2\,\mu_i^2, B, V_B, V_{\sigma}, S, V_S) \quad ,
 \end{eqnarray}
 where we have inserted the expressions from Equations (\ref{eq:mlik}), (\ref{eq:slik}), and (\ref{eq:sigma_prior}), and integrated over the nuisance parameter $\sigma^2_i$.
 
 Finally if we assume that the data collected at each epoch are independent given the model parameters, we have that
 \begin{eqnarray}\displaystyle
+\label{eqn:likfull}
 p(D|\theta,I) &=& \prod_i p(D_i|\theta,I)
 \quad.
 \end{eqnarray}
@@ -335,9 +336,14 @@ veracity.
 \subsection{Optimization in Practice}
 \label{ss:optim}
 
+Using the light curve data, $D$, from a particular source, our goal is to infer the parameters that describe the variability of that object.  We do so by maximizing the likelihood in Equations (\ref{eqn:lik}), and (\ref{eqn:likfull}) with respect to the parameter vector in Equation (\ref{eqn:likpar}).  The maximum likelihood estimate (MLE), which we call $\widehat{\theta}$ is the best estimate of the vector of model parameters that explain the variability of the object, given all of the data (observed and censored) and the assumed model.  The MLE allows us to then infer parameters of physical interest, such as the period and amplitude of oscillation.
+
+To maximize the data likelihood with respect to $\theta$, we use the {\tt fmin} routine in the {\tt Python} module {\tt scipy.optimze}.  The {\tt fmin} routine uses a a Nelder-Mead simplex algorithm to optimize a function with respect to its arguments starting from some initial guess, $\theta_0$.  The convergence of the algorithm is highly sensitive to the value of $\theta_0$.  To find the MLE parameters for each light curve, we use {\tt fmin} to minimize the negative log likelihood (negative natural log of Equation \ref{eqn:likfull}).  We use a standard Lomb-Scargle Fourier analysis (ignoring any epochs of non-detection) to initialize the search algorithm, deriving an initial guess for $\omega$ as the frequency corresponding to the maximal Lomb-Scargle spectral density, and initializing $A_0$, and $\{A_k, B_k\}_{k=1}^K$ using standard least squares.  In practice, we run the {\tt fmin} routine multiple times using different initial values of the angular frequency corresponding to the frequencies of the most significant spectral density peaks and values of one-half those frequencies.  Initial values for the other parameters are set at $\eta^2 = 0.2$, $B = V_B = 2\cdot\min(\fobs)$, and $ V_{\sigma} = S = V_S = \textrm{med}(\sobs)$.
 
 
-\joey{Describe how we optimize}
+
+Replacing likelihood with fast version where we trust $s_i^2$ for observed data.
+
 
 
 

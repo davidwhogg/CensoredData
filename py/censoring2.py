@@ -87,8 +87,13 @@ class Censored:
         #print np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS))
         if(self.b==None): # if no upper limits are given
             if(fast):
-                return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
-                       np.sum(self.loglikelihood_observed_fast(eta2,B,VB,Vsig))
+                llc = np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS))
+                llo = np.sum(self.loglikelihood_observed_fast(eta2,B,VB,Vsig))
+                if(np.isnan(llc) or np.isnan(llo)):
+                    print 'LL is nan'
+                if(np.abs(llc) == np.inf or np.abs(llo) == np.inf):
+                    print 'LL is inf or -inf'
+                return llc + llo
             return np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS)) + \
                    np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
         else: # if upper limits are given ONLY FOR CENSORED DATA
@@ -174,7 +179,7 @@ class Censored:
         par[4] = 0.2
         par[5] = 2.*np.abs(np.min(self.f))
         par[6] = par[5]
-        par[7] = np.median(self.ef) # JWR changed from ef2 to ef
+        par[7] = np.median(self.ef2) 
         par[8] = par[7]
         par[9] = par[8] # must be kept small or integration will take too long
         # also if par[9] is too large, the integration may return nan
@@ -321,20 +326,22 @@ def gaussian_pdf(x, mean, var):
 def gaussian_cdf(x, mean, var):
     if(np.any(var < 1.e-20)):
         return 1.e-10
-    return .5*(1. + erf(oneoversqrt2 * (x - mean)/np.sqrt(var)) ) # look up correct form
+    return .5*(1. + erf(oneoversqrt2 * (x - mean)/np.sqrt(var)) ) 
 
 def gamma_pdf(x,mean,var):
     theta = var / mean
     k = mean / theta
     if(np.log(gamma(k)) == np.inf):
         return 1.e-10
-    #print 'gamma PDF: ' + str(-k*np.log(theta)) +' ' + str(np.log(gamma(k))) + ' '+ str((k-1.)*np.log(x)) + ' ' +str(x/theta)
     pdf = np.exp(-k*np.log(theta) - np.log(gamma(k)) + (k-1.)*np.log(x) - x/theta)
     if(pdf == np.inf or pdf == -1*np.inf):
         return 1.e-10
     return pdf
 
+# gamma CDF is not currently used
 def gamma_cdf(x,mean,var):
+    if(var < 1.e-10):
+        var = 1.e-10
     theta = var / mean
     k = mean / theta
     return  gammainc(k,x/theta) ## wikipedia and scipy define imcomplete gamma differently
