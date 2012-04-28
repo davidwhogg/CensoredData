@@ -49,8 +49,8 @@ class Censored:
         unittests()
         return None
 
-    def mu(self, times, omega, A0, A1, B1, B0=0.):
-        return A0 + B0 * times + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
+    def mu(self, times, omega, A0, A1, B1, A01=0., A02 = 0.):
+        return A0 + A01 * times + A02 * times**2 + A1 * np.cos(omega * times) + B1 * np.sin(omega * times)
         
     def log_likelihood(self, par, fast = True):
         """ 
@@ -69,22 +69,31 @@ class Censored:
         S = np.abs(par[8])
         VS = par[9]**2
         if len(par) > 10:
-            B0 = par[10]
+            A01 = par[10]
+        if len(par) > 11:
+            A02 = par[11]
+
+        w =  (2 * np.pi)/ P
+
+        # handle case of no non-detections
+        if(len(self.tc) == 0):
+            if len(par) == 10:
+                self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, A01 = 0., A02=0.), f0=self.f0)
+            else:
+                self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, A01, A02=0.), f0=self.f0)
+            if(fast):
+                return np.sum(self.loglikelihood_observed_fast(eta2,B,VB,Vsig))
+            return np.sum(self.loglikelihood_observed(eta2,B,VB,Vsig,S,VS))
+ 
 
     ## convert all times to expected flux (i.e. t_i -> u_i)
-        w =  (2 * np.pi)/ P
         if len(par) == 10:
-            self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, B0 = 0.), f0=self.f0)
-            self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1, B0 = 0.), f0=self.f0)
+            self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, A01 = 0., A02=0.), f0=self.f0)
+            self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1, A01 = 0., A02=0.), f0=self.f0)
         else:
-            self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, B0), f0=self.f0)
-            self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1, B0), f0=self.f0)
+            self.u  = mag2flux(self.mu(self.t,  w, A0, A1, B1, A01, A02=0.), f0=self.f0)
+            self.uc = mag2flux(self.mu(self.tc, w, A0, A1, B1, A01, A02=0.), f0=self.f0)
 
-        #print 'muc = ' + str(self.uc)
-        #print 'muc mag = ' + str(self.mu(self.tc, w, A0, A1, B1, B0))
-        #print 'P=' + str(P) + 'A0 = ' + str(A0)+ ' A1 = '+ str(A1)+' B1 = '+ str(B1)
-        #print 'eta2 = ' + str(eta2)+ ' B = '+ str(B)+' VB = '+ str(VB)+ ' S = '+ str(S)+ ' VS = '+ str(VS)
-        #print np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS))
         if(self.b==None): # if no upper limits are given
             if(fast):
                 llc = np.sum(self.loglikelihood_censored(eta2,B,VB,S,VS))
@@ -162,20 +171,24 @@ class Censored:
         """
         return -1*self.log_likelihood(par, fast=fast)
 
-    def get_init_par(self, Period, fitslope=False):
+    def get_init_par(self, Period, detrend=0):
         """
         quick guess for initial parameters employing least squares
         """
         # params:     P,A0,A1,B1,eta2,B,VB,Vsig,S,VS
-        if(fitslope):
+        if(detrend==1):
             par = np.zeros(11)
+        elif(detrend==2):
+            par = np.zeros(12)
         else:
             par = np.zeros(10)
         par[0] = Period
-        ls = self.least_sq(Period, fitslope)
+        ls = self.least_sq(Period, detrend)
         par[1:4] = ls[0:3]
-        if(fitslope):
+        if(detrend>0):
             par[10] = ls[3]
+        if(detrend==2):
+            par[11] = ls[4]
         par[4] = 0.2
         par[5] = 2.*np.abs(np.min(self.f))
         par[6] = par[5]
@@ -185,19 +198,23 @@ class Censored:
         # also if par[9] is too large, the integration may return nan
         return par
 
-    def least_sq(self,Period, fitslope=False):
+    def least_sq(self,Period, detrend=0):
         """
         least squares fit for A0, A1, B1 at a fixed (given) period
         """
-        if(fitslope):
+        if(detrend==1):
             Amat = np.zeros( (4,len(self.t)))
+        elif(detrend==2):
+            Amat = np.zeros( (5,len(self.t)))
         else:
             Amat = np.zeros( (3,len(self.t)))
         Amat[0,:] = 1.
         Amat[1,:] = self.mu(self.t,2.*np.pi / Period, 0,1,0)
         Amat[2,:] = self.mu(self.t,2.*np.pi / Period, 0,0,1)
-        if(fitslope):
+        if(detrend>0):
             Amat[3,:] = self.t
+        if(detrend==2):
+            Amat[4,:] = self.t**2
         Atb = np.dot(Amat, self.m) 
         AtAinv = np.matrix(np.dot(Amat,Amat.T)).I
         return np.dot(AtAinv,Atb).tolist()[0]
@@ -259,10 +276,14 @@ class Censored:
         A1 = par[2]
         B1 = par[3]
         eta2 = par[4]**2
-        if len(par) > 10:
-            B0 = par[10]
+        if len(par) > 11:
+            A02 = par[11]
         else:
-            B0 = 0.
+            A02 = 0.
+        if len(par) > 10:
+            A01 = par[10]
+        else:
+            A01 = 0.
         ax.axhline(0., color='k', alpha=0.25)
         if(mag):
             y = self.m
@@ -284,11 +305,11 @@ class Censored:
             ax.plot(xc - mediant + 1., yc, 'r.', alpha=0.5, mec='r')
         if(plot_model):
             if(mag):
-                mup = self.mu(tp, omega, A0, A1, B1, B0)
+                mup = self.mu(tp, omega, A0, A1, B1, A01, A02)
                 mup_p = mup + 1.086 * np.sqrt(eta2)
                 mup_m = mup - 1.086 * np.sqrt(eta2)
             else:
-                mup = mag2flux(self.mu(tp, omega, A0, A1, B1, B0), f0=self.f0)
+                mup = mag2flux(self.mu(tp, omega, A0, A1, B1, A01, A02), f0=self.f0)
                 mup_p = mup * (1. + np.sqrt(eta2))
                 mup_m = mup * (1. - np.sqrt(eta2))
             ax.plot(xp - mediant, mup_p, 'b-', alpha=0.25)

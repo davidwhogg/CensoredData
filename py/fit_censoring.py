@@ -97,7 +97,7 @@ if __name__ == "__main__":
 #                                                 ('newP',np.float), ('newA',np.float),('llik',np.float)])
 
     #### FOR EACH MIRA IN miras ####
-    for jj in np.arange(64,65):
+    for jj in np.arange(0,1):
     #for jj in np.arange(440,441):
         # load in data from web
         print '   #### doing mira ' + str(jj) + ': ' + str(catalog['ID'][miras[jj]]) \
