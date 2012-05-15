@@ -22,6 +22,7 @@ import cProfile
 import numpy as np
 import matplotlib.pylab as plt
 import sys, os
+import time
 import urllib2 as ulib
 
 from fit_censoring import *
@@ -55,8 +56,20 @@ def doMira(ind, catalog):
 
     new_periods = np.zeros((1,),dtype=[('ID','S16'), ('oldP',np.float), ('oldA',np.float),\
                                        ('newP',np.float), ('newA',np.float),('llik',np.float)])
-    
-    data = load_lc_from_web(catalog['ID'][ind])
+
+    tryind = 0
+    while(tryind < 5):
+        try:
+            data = load_lc_from_web(catalog['ID'][ind])
+            break
+        except:
+            tryind += 1
+            print 'Cannot retreive data from web'
+            time.sleep(10)
+
+    if(tryind >= 5):
+        print 'Skipping Mira ' + str(catalog['dID'][ind])
+        return
     
     indo = np.where(data['m'] != 29.999)
     tobs = data['t'][indo]
