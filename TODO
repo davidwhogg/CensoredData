@@ -1,0 +1,18 @@
+
+- Write up results for all 2538 Miras that were fit using Censoring LS code.  Preliminary figures have been made, but a full write-up needs to be done.
+
+- Further astrophysical validation of the estimated Mira P-A relationship.  Maybe split the LMC objects from the galactic plane Miras to see if any strong relationship pops out.  
+
+- Other papers omit Miras where no trough in the LC was observed; we should compare our inferences to theirs (Hipparcos, NSVS, OGLE & MACHO data, papers in repo).
+
+- Comparison to the periods provided by ASAS for all the Miras
+
+- Maybe do something with the simulated Mira, though I'm inclined to omit this.
+
+- Better justification of priors, and/or evaluation of sensitivity to priors.
+
+- Sections 2 & 3 look pretty good (though we should elaborate in section 2 about why we are doing this).  However, the Introduction section is a mess & can use lots of cleaning. 
+
+- We should show an example early on in the paper of a variable star whose period gets horribly mis-estimated by not accounting for non-detections, and gets correctly estimated by our method.  This will certainly grab the reader's attention.
+
+- Develop a way to use this for selection of variability, though this may be another paper as it requires development of criteria for finding variability.

@@ -12,8 +12,8 @@ time_missing = lc[lc[:,1] > 29.9,0]
 lc = lc[lc[:,1] < 29.99,:]
 
 # l.s. grid search parameters
-min_freq = .002
-max_freq = 1.
+min_freq = 1./1000.
+max_freq = 1./50.
 df = .000001
 numf = int((max_freq - min_freq) / df)
 
