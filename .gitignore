@@ -2,6 +2,9 @@
 *.aux
 *.log
 *.png
+*.nav
+*.toc
+*.snm
 venv
 .DS_Store
 *.pyc
@@ -10,3 +13,4 @@ ms.pdf
 data
 *.dvi
 tex/gm/gm.pdf
+presentations/mpia_2012-08-23.pdf

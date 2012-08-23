@@ -1,0 +1,87 @@
+% Copyright 2012 David W. Hogg (NYU).  All rights reserved.
+
+\documentclass[pdftex]{beamer}
+\input{hogg_presentation} % hogg standard colors
+\usepackage{amssymb,amsmath,mathrsfs}
+\newcommand{\setofall}[3]{\left\{{#1}\right\}_{#2}^{#3}}
+ \newcommand{\allvn}{\Dvec_n}
+ \newcommand{\allv}{\setofall{\allvn}{n=1}{N}}
+ \newcommand{\allparsn}{{\omegavec_n}}
+ \newcommand{\allpars}{\setofall{\allparsn}{n=1}{N}}
+\newcommand{\hoggmatrix}[1]{\boldsymbol{#1}}
+ \newcommand{\Dvec}{\hoggmatrix{D}}
+ \newcommand{\alphavec}{\hoggmatrix{\alpha}}
+ \newcommand{\omegavec}{\hoggmatrix{\omega}}
+\newcommand{\est}[1]{\tilde{#1}}
+\newcommand{\pomega}{\varpi}
+\newcommand{\documentname}{\textsl{Article}}
+\newcommand{\equationname}{equation}
+\newcommand{\likealpha}{\mathscr{L}_{\alphavec}}
+\newcommand{\falpha}{{f_{\alphavec}}}
+\newcommand{\jupiter}{\mathrm{Jup}}
+
+\newcommand{\paramvector}[1]{\boldsymbol{#1}}
+\newcommand{\pointing}{\paramvector{\alpha}}
+\newcommand{\fovpars}{\paramvector{\Omega}}
+\newcommand{\orbitpars}{\paramvector{\omega}}
+\newcommand{\hyperpars}{\paramvector{\theta}}
+\newcommand{\position}{\paramvector{x}}
+\newcommand{\velocity}{\paramvector{v}}
+\newcommand{\uniform}{\mathrm{uniform}}
+\newcommand{\tmin}{t_\mathrm{min}}
+\newcommand{\tmax}{t_\mathrm{max}}
+\newcommand{\pgood}{p_\mathrm{good}}
+\newcommand{\pempirical}{p_\mathrm{emp}}
+\newcommand{\exif}{\mathrm{EX}}
+\newcommand{\pexif}{p_\exif}
+\newcommand{\texif}{t_\exif}
+\newcommand{\pfg}{p_\mathrm{fg}}
+\newcommand{\pbg}{p_\mathrm{bg}}
+
+% figure craziness
+\newlength{\thumbwidth}
+\setlength{\thumbwidth}{0.18\textwidth}
+\newcounter{thumbnail}
+\renewcommand{\thethumbnail}{\alph{thumbnail}}
+\newcommand{\tlabel}[1]{\textsl{({#1})}}
+\newcommand{\chumbnail}[4]{\includegraphics[width=#1\thumbwidth, height=#1\thumbwidth, keepaspectratio=true]{#2}\refstepcounter{thumbnail}\raisebox{1ex}{\makebox[0in][r]{\textcolor{green}{\footnotesize {#4}\tlabel{\thethumbnail}\rule[-1.5ex]{0.5ex}{0ex}}}}\label{#3}}
+\newcommand{\shumbnail}[3]{\chumbnail{#1}{#2}{#3}{}}
+\newcommand{\thumbnail}[3]{\chumbnail{#1}{#2}{#3}{$\ast$}}
+
+\begin{document}
+
+\begin{frame}
+  \frametitle{principal collaborators}
+  \begin{itemize}
+  \item Joey Richards (Berkeley Statistics \& CTDI)
+  \item James Long (Berkeley Statistics \& CTDI)
+  \item Dan Foreman-Mackey (NYU Physics \& CCPP)
+  \item David W. Hogg (NYU Physics \& CCPP \& Max-Planck-Institut f\"ur Astronomie)
+  \item Josh Bloom (Berkeley Astronomy \& CTDI)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\project{ASAS} data}
+  \only<1>{\includegraphics[width=\textwidth]{bestfit_000208-1440_5_orig.png}}
+  \only<2>{\includegraphics[width=\textwidth]{bestfit_045832-0604_1_orig.png}}
+  \only<3>{\includegraphics[width=\textwidth]{bestfit_162024-6219_8_orig.png}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{traditional period-fitting}
+\end{frame}
+
+\begin{frame}
+  \frametitle{the model}
+\end{frame}
+
+\begin{frame}
+  \frametitle{the model (graphical)}
+\end{frame}
+
+\begin{frame}
+  \frametitle{new results}
+\end{frame}
+
+\end{document}
