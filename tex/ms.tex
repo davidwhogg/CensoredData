@@ -305,7 +305,7 @@ Putting it all together, we can write down the likelihood of the data, $D_i$, fo
 p(D_i|\theta,I) &=& \int_0^{\infty} p(\fobs |\sigma^2_i,\theta,I)\, p(\sobs | \fobs, \sigma^2_i,\theta,I)\, p(\sigma^2_i | \theta, I)\,\dd \sigma^2_i
 \\
 \label{eqn:likpar}
-\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, \eta^2\,\mu_i^2, B, V_B, V_{\sigma}, S, V_S) \quad ,
+\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, \eta^2, B, V_B, V_{\sigma}, S, V_S) \quad ,
 \end{eqnarray}
 where we have inserted the expressions from Equations (\ref{eq:mlik}), (\ref{eq:slik}), and (\ref{eq:sigma_prior}), and integrated over the nuisance parameter $\sigma^2_i$.
 
