@@ -2,53 +2,30 @@
 
 \documentclass[pdftex]{beamer}
 \input{hogg_presentation} % hogg standard colors
-\usepackage{amssymb,amsmath,mathrsfs}
-\newcommand{\setofall}[3]{\left\{{#1}\right\}_{#2}^{#3}}
- \newcommand{\allvn}{\Dvec_n}
- \newcommand{\allv}{\setofall{\allvn}{n=1}{N}}
- \newcommand{\allparsn}{{\omegavec_n}}
- \newcommand{\allpars}{\setofall{\allparsn}{n=1}{N}}
-\newcommand{\hoggmatrix}[1]{\boldsymbol{#1}}
- \newcommand{\Dvec}{\hoggmatrix{D}}
- \newcommand{\alphavec}{\hoggmatrix{\alpha}}
- \newcommand{\omegavec}{\hoggmatrix{\omega}}
-\newcommand{\est}[1]{\tilde{#1}}
-\newcommand{\pomega}{\varpi}
-\newcommand{\documentname}{\textsl{Article}}
-\newcommand{\equationname}{equation}
-\newcommand{\likealpha}{\mathscr{L}_{\alphavec}}
-\newcommand{\falpha}{{f_{\alphavec}}}
-\newcommand{\jupiter}{\mathrm{Jup}}
 
-\newcommand{\paramvector}[1]{\boldsymbol{#1}}
-\newcommand{\pointing}{\paramvector{\alpha}}
-\newcommand{\fovpars}{\paramvector{\Omega}}
-\newcommand{\orbitpars}{\paramvector{\omega}}
-\newcommand{\hyperpars}{\paramvector{\theta}}
-\newcommand{\position}{\paramvector{x}}
-\newcommand{\velocity}{\paramvector{v}}
-\newcommand{\uniform}{\mathrm{uniform}}
-\newcommand{\tmin}{t_\mathrm{min}}
-\newcommand{\tmax}{t_\mathrm{max}}
-\newcommand{\pgood}{p_\mathrm{good}}
-\newcommand{\pempirical}{p_\mathrm{emp}}
-\newcommand{\exif}{\mathrm{EX}}
-\newcommand{\pexif}{p_\exif}
-\newcommand{\texif}{t_\exif}
-\newcommand{\pfg}{p_\mathrm{fg}}
-\newcommand{\pbg}{p_\mathrm{bg}}
-
-% figure craziness
-\newlength{\thumbwidth}
-\setlength{\thumbwidth}{0.18\textwidth}
-\newcounter{thumbnail}
-\renewcommand{\thethumbnail}{\alph{thumbnail}}
-\newcommand{\tlabel}[1]{\textsl{({#1})}}
-\newcommand{\chumbnail}[4]{\includegraphics[width=#1\thumbwidth, height=#1\thumbwidth, keepaspectratio=true]{#2}\refstepcounter{thumbnail}\raisebox{1ex}{\makebox[0in][r]{\textcolor{green}{\footnotesize {#4}\tlabel{\thethumbnail}\rule[-1.5ex]{0.5ex}{0ex}}}}\label{#3}}
-\newcommand{\shumbnail}[3]{\chumbnail{#1}{#2}{#3}{}}
-\newcommand{\thumbnail}[3]{\chumbnail{#1}{#2}{#3}{$\ast$}}
+\newcommand{\fobs}{f_i}
+\newcommand{\sobs}{s^2_i}
+\newcommand{\ftrue}{f_i^*}
 
 \begin{document}
+
+\begin{frame}
+  \frametitle{situation normal}
+  imagine that
+  \begin{itemize}
+  \item you \emph{don't believe the errors} you have been given,
+  \item the data are \emph{highly censored},
+  \item you \emph{aren't given quantitative upper limit information}, and
+  \item you \emph{don't know why the data were censored} and expect that it is a stochastic function of time
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\project{ASAS} data}
+  \only<1>{\includegraphics[width=\textwidth]{bestfit_000208-1440_5_orig.png}}
+  \only<2>{\includegraphics[width=\textwidth]{bestfit_045832-0604_1_orig.png}}
+  \only<3>{\includegraphics[width=\textwidth]{bestfit_162024-6219_8_orig.png}}
+\end{frame}
 
 \begin{frame}
   \frametitle{principal collaborators}
@@ -62,26 +39,109 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{\project{ASAS} data}
-  \only<1>{\includegraphics[width=\textwidth]{bestfit_000208-1440_5_orig.png}}
-  \only<2>{\includegraphics[width=\textwidth]{bestfit_045832-0604_1_orig.png}}
-  \only<3>{\includegraphics[width=\textwidth]{bestfit_162024-6219_8_orig.png}}
+  \frametitle{``traditional'' period-fitting}
+\begin{eqnarray}\displaystyle
+\mu_i' &=& A_0 + \sum_{k=1}^K A_k\, \sin (t_i \, \omega  k) + B_k\, \cos (t_i \, \omega  k)
+\nonumber \\
+p(D_i|\theta,I) &=& N(D_i|\mu_i,\sigma^2_i) \quad \mbox{when $i$ is detected}
+\nonumber \\
+p(D|\theta,I) &=& \prod_{\mbox{detected}\,i} p(D_i|\theta,I)
+\nonumber
+\end{eqnarray}
 \end{frame}
 
 \begin{frame}
   \frametitle{traditional period-fitting}
+  \only<1>{\includegraphics[width=\textwidth]{bestfit_000208-1440_5_orig.png}}
+  \only<2>{\includegraphics[width=\textwidth]{bestfit_mag_000208-1440_5_old.png}}
+  \only<3>{\includegraphics[width=\textwidth]{bestfit_045832-0604_1_orig.png}}
+  \only<4>{\includegraphics[width=\textwidth]{bestfit_mag_045832-0604_1_old.png}}
+  \only<5>{\includegraphics[width=\textwidth]{bestfit_162024-6219_8_orig.png}}
+  \only<6>{\includegraphics[width=\textwidth]{bestfit_mag_162024-6219_8_old.png}}
 \end{frame}
 
 \begin{frame}
-  \frametitle{the model}
+  \frametitle{our model}
+\begin{eqnarray}\displaystyle
+\mu_i' &=& A_0 + \sum_{k=1}^K A_k\, \sin (t_i \, \omega  k) + B_k\, \cos (t_i \, \omega  k)
+\nonumber \\
+\ftrue &=& \mu_i + e_i
+\nonumber \\
+\fobs &=& \left\{\begin{array}{ll}
+  \ftrue & \mbox{if $\ftrue \ge b_i$} \\
+  \texttt{NA} & \mbox{if $\ftrue < b_i$} \\
+\end{array} \right.
+\nonumber \\
+p(b_i|\theta) &=& N(b_i|B,V_B)
+\nonumber
+\end{eqnarray}
 \end{frame}
 
 \begin{frame}
-  \frametitle{the model (graphical)}
+  \frametitle{our model}
+\begin{eqnarray}\displaystyle
+\Sigma^2_i &=& \sigma^2_i + \eta^2\,\mu_i^2
+\nonumber \\
+p(\fobs |\sigma^2_i,\theta,I) &=& \left\{\begin{array}{ll}
+  N(\fobs | \mu_i,  \Sigma^2_i)\,  \int_{-\infty}^{\fobs} p(b_i | \theta)\, \dd b_i & \mbox{if $\fobs \ne \texttt{NA}$} \\
+  \int_{-\infty}^{\infty} \int_{-\infty}^{b_i} N(\ftrue | \mu_i, \Sigma^2_i)\, p(b_i | \theta)\, \dd \ftrue\, \dd b_i & \mbox{if $\fobs = \texttt{NA}$}
+\end{array}\right.
+\nonumber \\
+p(\fobs |\sigma^2_i,\theta,I, b_i) &=& \left\{\begin{array}{ll}
+  N(\fobs | \mu_i,  \Sigma^2_i)\,  I(\fobs \ge b_i) & \mbox{if $\fobs \ne \texttt{NA}$} \\
+ \int_{-\infty}^{b_i} N(\ftrue | \mu_i, \Sigma^2_i)\, \dd \ftrue & \mbox{if $\fobs = \texttt{NA}$}
+\end{array}\right.
+\nonumber \\
+p(\sobs | \fobs, \sigma^2_i, \theta,I) &=& \left\{\begin{array}{ll}
+  \Gamma (\sobs | \sigma^2_i, V_{\sigma} ) & \mbox{if $\fobs \ne \texttt{NA}$} \\
+ I(\sobs = \texttt{NA})& \mbox{if $\fobs = \texttt{NA}$}
+\end{array}\right.
+\nonumber \\
+p(\sigma^2_i|\theta, I) &=& \Gamma(\sigma^2_i | S, V_S)
+\nonumber \\
+p(D_i|\theta,I) &=& \int_0^{\infty} p(\fobs |\sigma^2_i,\theta,I)\, p(\sobs | \fobs, \sigma^2_i,\theta,I)\, p(\sigma^2_i | \theta, I)\,\dd \sigma^2_i
+\nonumber
+\end{eqnarray}
 \end{frame}
 
 \begin{frame}
-  \frametitle{new results}
+  \frametitle{our model}
+\begin{eqnarray}\displaystyle
+p(D|\theta,I) &=& \prod_i p(D_i|\theta,I)
+\nonumber \\
+\theta &\equiv& (\omega, A_0, \{A_k, B_k\}_{k=1}^K, \eta^2\,\mu_i^2, B, V_B, V_{\sigma}, S, V_S)
+\nonumber
+\end{eqnarray}
+\end{frame}
+
+\begin{frame}
+  \frametitle{our model (graphical)}
+  \includegraphics[trim=3cm 12cm 5cm 3cm, clip=true, width=0.85\textwidth]{../tex/gm/gm.pdf}
+\end{frame}
+
+\begin{frame}
+  \frametitle{our results}
+  \only<1>{\includegraphics[width=\textwidth]{bestfit_mag_000208-1440_5_old.png}}
+  \only<2>{\includegraphics[width=\textwidth]{bestfit_mag_000208-1440_5_new.png}}
+  \only<3>{\includegraphics[width=\textwidth]{bestfit_mag_045832-0604_1_old.png}}
+  \only<4>{\includegraphics[width=\textwidth]{bestfit_mag_045832-0604_1_new.png}}
+  \only<5>{\includegraphics[width=\textwidth]{bestfit_mag_162024-6219_8_old.png}}
+  \only<6>{\includegraphics[width=\textwidth]{bestfit_mag_162024-6219_8_new.png}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{conclusions}
+  \begin{itemize}
+  \item even when you \emph{don't believe the errors} you have been given,
+  \item even when the data are \emph{highly censored},
+  \item even when you \emph{aren't given quantitative upper limit information},
+  \item even when you \emph{don't know why the data were censored} and expect that it is a stochastic function of time,
+  \item you \emph{can use the non-detections!}
+    \begin{itemize}
+    \item Key idea: The robot is insane but it isn't \emph{antagonistic}.
+    \item The variations in censorship \emph{policy} are not correlated with the behavior of the source.
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \end{document}
