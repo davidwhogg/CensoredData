@@ -96,19 +96,24 @@
 %%%%%%%% TITLE, AUTHORS, PUBLICATION STATUS, and ABSTRACT %%%%%%%%%
 
 \shorttitle{Fitting the Undetected}
-\shortauthors{}
+\shortauthors{Richards, Hogg, Long, Foreman-Mackey}
 \title{Fitting the Undetected:  Light-curve Feature Estimation in the Presence of Non-detections}
 \author{
-Some wild \& crazy guys
+Joseph W. Richards\altaffilmark{1, 2, 3, *},
+David W. Hogg\altaffilmark{4, 5},
+James P. Long\altaffilmark{2},
+Daniel Foreman-Mackey\altaffilmark{4}
 }
 %
-%\altaffiltext{1}{Astronomy Department, University of California, Berkeley, CA, 94720-7450, USA}
-%\altaffiltext{2}{Statistics Department, University of California, Berkeley, CA, 94720-7450, USA}
-%\altaffiltext{*}{E-mail: {\tt jwrichar@stat.berkeley.edu}}
+\altaffiltext{1}{Astronomy Department, University of California, Berkeley, CA, 94720-7450, USA}
+\altaffiltext{2}{Statistics Department, University of California, Berkeley, CA, 94720-7450, USA}
+\altaffiltext{3}{wise.io, 2150 Shattuck Ave., suite 525, Berkeley, CA, 94704, USA}
+\altaffiltext{4}{Center for Cosmology and Particle Physics, Department of Physics, New York University, 4 Washington Place, New York, NY 10003, USA}
+\altaffiltext{5}{Max-Planck-Institut f\"ur Astronomie, K\"onigstuhl 17, D-69117 Heidelberg, Germany}
+\altaffiltext{*}{\texttt{jwrichar@stat.berkeley.edu}}
 
 % Note the status (in preparation, MNRAS submitted date, ApJ accepted date, in press etc).
-\slugcomment{in preparation}
-
+\slugcomment{DRAFT 2013-03-26 / in preparation}
 
 \begin{abstract}
 In multi-epoch imaging surveys, faint variable sources will not be
@@ -324,15 +329,6 @@ independence assumptions. This model
 available, without making strong assumptions about the survey or its
 veracity.
 
-\begin{figure}[hbtp]
-  \begin{center}
-    \includegraphics[width=\textwidth,%
-      trim=3cm 12cm 5cm 3cm, clip=true]{gm/gm.pdf}
-  \end{center}
-  \caption{The graphical representation of the probability distribution.
-    \label{fig:graph}}
-\end{figure}
-
 \subsection{Optimization in Practice}
 \label{ss:optim}
 
@@ -369,13 +365,6 @@ To simulate faint Mira stars from ASAS 235627-4947.2, we use the following proce
 Folded light curves of ASAS 235627-4947.2, dimmed by four different values of $d$, are plotted in Figure \ref{fig:mirasim}.
 
 
-\begin{figure*}
-\begin{center}
-\includegraphics[angle=0,width=6.5in]{../plots/mira_simulated.pdf}
-\end{center}
-\caption{ Folded light curves for data simulated from the Mira variable ASAS 235627-4947.2 using the prescription in \S\ref{ss:mirasim}.  Blue tick marks along the bottom axis denote phases where there were non-detections.  As the original flux measurements are dimmed by higher factors, the troughs of the sinusoidal light curve are censored, resulting in an incomplete view of the data.  \label{fig:mirasim}}
-\end{figure*}
-
 
 \subsection{Results of Fitting Miras}
 
@@ -390,21 +379,9 @@ We use the methodology of \cite{2011arXiv1106.2832R} to select the top ASAS Mira
 Figure \ref{fig:miraP} shows the estimated periods for standard Lomb-Scargle against the periods from our censored Fourier model for 2538 likely Mira variables chosen from the MACC catalog (these were chosen such that $P$(Mira) $>0.5$.)  For 12.6\% of these objects, the censored period is twice that of the Lomb-Scargle period, while for 0.51\% it is triple (show examples).  This occurs because of XYZ.  For 85.5\% of all objects, the periods are consistent to $\pm$5\%.
 
 
-\begin{figure*}
-\begin{center}
-\includegraphics[angle=0,width=6.5in]{../plots/mira_periods_LS_vs_Censored.pdf}
-\end{center}
-\caption{ .  \label{fig:miraP}}
-\end{figure*}
 
 Figure \ref{fig:miraPA} shows the period-amplitude relationship for the set of Mira variables, with periods and amplitudes estimated by standard Lomb-Scargle (left) and the censored model (right).  Results show that XYZ.
  
-\begin{figure*}
-\begin{center}
-\includegraphics[angle=0,width=6.5in]{../plots/mira_period_amplitude_relation.pdf}
-\end{center}
-\caption{ .  \label{fig:miraPA}}
-\end{figure*}
 
 
 
@@ -425,10 +402,47 @@ What people can do, starting from the data-taking procedure.
 limitations
 
 
-
-\acknowledgements
-
+\acknowledgements It is a pleasure to thank Josh Bloom (Berkeley) for
+valuable discussions and comments.  Partial support for this project
+was provided by [JWR: PUT GRANT NUMBERS HERE], NASA grant NNX12AI50G,
+and NSF grant IIS-1124794.
 
 \bibliography{non_detect}
+
+\clearpage
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth,%
+      trim=3cm 12cm 5cm 3cm, clip=true]{gm/gm.pdf}
+  \end{center}
+  \caption{The graphical representation of the probability distribution.
+    \label{fig:graph}}
+\end{figure}
+
+\clearpage
+\begin{figure}
+\begin{center}
+\includegraphics[angle=0,width=6.5in]{../plots/mira_simulated.pdf}
+\end{center}
+\caption{ Folded light curves for data simulated from the Mira variable ASAS 235627-4947.2 using the prescription in \S\ref{ss:mirasim}.  Blue tick marks along the bottom axis denote phases where there were non-detections.  As the original flux measurements are dimmed by higher factors, the troughs of the sinusoidal light curve are censored, resulting in an incomplete view of the data.  \label{fig:mirasim}}
+\end{figure}
+
+\clearpage
+\begin{figure}
+\begin{center}
+\includegraphics[angle=0,width=6.5in]{../plots/mira_periods_LS_vs_Censored.pdf}
+\end{center}
+\caption{ .  \label{fig:miraP}}
+\end{figure}
+
+\clearpage
+\begin{figure}
+\begin{center}
+\includegraphics[angle=0,width=6.5in]{../plots/mira_period_amplitude_relation.pdf}
+\end{center}
+\caption{ .  \label{fig:miraPA}}
+\end{figure}
+
+
 
 \end{document}
