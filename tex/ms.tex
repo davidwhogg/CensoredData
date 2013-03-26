@@ -1,6 +1,3 @@
-% Define the document class. aastex for manuscript preparation, emulateapj for making it look polished.
-% \documentclass[12pt,preprint2]{aastex}
-%\documentclass[12pt,a4paper, iop,onecolumn,numberedappendix]{emulateapj}
 \documentclass[12pt,preprint]{aastex}
 
 % Import the natbib package for bibliography inclusion. To get it to work right, first typeset the bibliography (BibTex), Command-Shift-B.
@@ -76,19 +73,19 @@
 % And similarly, one (less jarring, with fewer symbols and no boldface) command
 % for each one of us to leave comments in the main text.
 \newcommand{\james}[1] { \textcolor{blue} {
-\ensuremath{\blacklozenge} {\bf james:}  {#1}
+\ensuremath{\blacklozenge} {\bf james says:}  {#1}
 \ensuremath{\blacklozenge} } }
 
 \newcommand{\hogg}[1] { \textcolor{darkorange} {
-\ensuremath{\blacksquare} {\bf hogg:}  {#1}
+\ensuremath{\blacksquare} {\bf hogg says:}  {#1}
 \ensuremath{\blacksquare} } }
 
 \newcommand{\dan}[1] { \textcolor{darkgreen} {
-\ensuremath{\bigstar} {\bf dan:}  {#1}
+\ensuremath{\bigstar} {\bf dan says:}  {#1}
 \ensuremath{\bigstar} } }
 
 \newcommand{\joey}[1] { \textcolor{red} {
-\ensuremath{\clubsuit} {\bf joey:}  {#1}
+\ensuremath{\clubsuit} {\bf joey says:}  {#1}
 \ensuremath{\clubsuit} } }%\documentclass[manuscript]{aastex}
 
 
@@ -412,11 +409,18 @@ and NSF grant IIS-1124794.
 \clearpage
 \begin{figure}
   \begin{center}
+    [\hogg{PUT FIGURE HERE}]
+  \end{center}
+  \caption{An example of why this project is necessary.  The points are... \hogg{this should be a figure showing heavily censored data and a traditional fit to them, folded AND UNFOLDED, showing that the traditional fit is way wrong.}\label{fig:badfit}}
+\end{figure}
+
+\clearpage
+\begin{figure}
+  \begin{center}
     \includegraphics[width=\textwidth,%
       trim=3cm 12cm 5cm 3cm, clip=true]{gm/gm.pdf}
   \end{center}
-  \caption{The graphical representation of the probability distribution.
-    \label{fig:graph}}
+  \caption{The graphical representation of the probability distribution.\label{fig:graph}}
 \end{figure}
 
 \clearpage
@@ -424,7 +428,23 @@ and NSF grant IIS-1124794.
 \begin{center}
 \includegraphics[angle=0,width=6.5in]{../plots/mira_simulated.pdf}
 \end{center}
-\caption{ Folded light curves for data simulated from the Mira variable ASAS 235627-4947.2 using the prescription in \S\ref{ss:mirasim}.  Blue tick marks along the bottom axis denote phases where there were non-detections.  As the original flux measurements are dimmed by higher factors, the troughs of the sinusoidal light curve are censored, resulting in an incomplete view of the data.  \label{fig:mirasim}}
+\caption{ Folded light curves for data simulated from the Mira variable ASAS 235627-4947.2 using the prescription in \S\ref{ss:mirasim}.  Blue tick marks along the bottom axis denote phases where there were non-detections.  As the original flux measurements are dimmed by higher factors, the troughs of the sinusoidal light curve are censored, resulting in an incomplete view of the data.  \hogg{This figure needs to show the OLD and NEW best-fit lightcurve models too!}\label{fig:mirasim}}
+\end{figure}
+
+\clearpage
+\begin{figure}
+  \begin{center}
+    [\hogg{PUT FIGURE HERE}]
+  \end{center}
+  \caption{A real-data example.  This is the same source as that shown in \figurename~\ref{fig:badfit} but now showing the results of...\label{fig:goodfit}}
+\end{figure}
+
+\clearpage
+\begin{figure}
+  \begin{center}
+    [\hogg{PUT FIGURE HERE}]
+  \end{center}
+  \caption{Another few real-data examples; in each case the method presented here either matches the traditional method or is substantially better.\label{fig:examples}}
 \end{figure}
 
 \clearpage
