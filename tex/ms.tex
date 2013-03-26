@@ -115,23 +115,31 @@ Daniel Foreman-Mackey\altaffilmark{4}
 \begin{abstract}
 In multi-epoch imaging surveys, faint variable sources will not be
 detectable at all epochs.  In principle, the best approach is to
-perform photometric measurements anyway, so that there is a datum
-recorded at every epoch.  In practice, most surveys only provide
-detection upper limits at some epochs; in some not even upper
-limits but just the information that the star was not observed.  Here
-we demonstrate with real data on periodic variables from the All-Sky
-Automated Survey (ASAS) that these non-detections are nonetheless useful in
-fitting and parameter estimation; their inclusion improves both
-precision and accuracy.  One novel aspect of this work is that we do
-not require the data source to include accurate---or even
-any---information about the uncertainty variances on detections or the
-values of the upper limits; we find that we can model these as latent
-variables, even when they are different at every epoch.  Using realistic
-simulations of Mira variable stars, we obtain amplitude estimates that
-are {\bf XXX\%} more accurate by incorporating the non-detections into
-the analysis.  For  Mira and RR Lyrae variables observed by ASAS, our
-method obtains a tighter period - amplitude relationship than the standard
-technique.
+perform photometric measurements (forced photometry) anyway.
+%
+In practice, most surveys only provide detection upper limits at some
+epochs; in some not even upper limits but just the ``null''
+information that the star was not detected.
+%
+Here we demonstrate with real data on periodic variables from the
+All-Sky Automated Survey (ASAS) that these null observations can
+in fact be very useful in fitting and parameter estimation.
+%
+We build a novel light-curve model that includes the per-epoch
+detection thresholds as a set of latent parameters, one per data
+point; the best-fit model is the maximum-likelihood model after
+marginalizing out the latent thresholds.
+%
+The key assumption is that the detection thresholds are drawn from a
+stationary distribution (the parameters of which are free to vary).
+%
+We demonstrate that this censored-data model outperforms traditional
+fitting---in which null observations are discarded from the
+fits---in estimating both periods and amplitudes for stars subject to
+heavy censoring.
+%
+In particular, our model eradicates a failure mode in which
+traditional fitting obtains an integer fraction of the correct period.
 \end{abstract}
 
 %\keywords{stars: variables: general -- methods: data analysis -- methods: statistical -- techniques: photometric}
