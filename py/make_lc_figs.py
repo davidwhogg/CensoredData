@@ -1,10 +1,10 @@
 
-if __name__ == '__main__':
-    import matplotlib
-    matplotlib.use('Agg')
-    from matplotlib import rc
-    rc('font',**{'family':'serif','serif':'Computer Modern Roman','size':18})
-    rc('text', usetex=True)
+# if __name__ == '__main__':
+#     import matplotlib
+#     matplotlib.use('Agg')
+#     from matplotlib import rc
+#     rc('font',**{'family':'serif','serif':'Computer Modern Roman','size':18})
+#     rc('text', usetex=True)
 
 
 import censoring2 as c2
@@ -26,6 +26,8 @@ def plot_fig(ID, path, nper=2):
     """ plot folded and unfolded LS and censored model fits
     """
     data = load_lc_from_web(ID)
+
+    print path + 'plots/fig_'+ ID +'.png'
 
     indo = np.where(data['m'] != 29.999)
     tobs = data['t'][indo]
@@ -60,13 +62,13 @@ def plot_fig(ID, path, nper=2):
         print "Fitting for period candidate %i of %i" % (i, nper)
         # initialized at Nat's period
         p0 = cmodel.get_init_par(Pinit[i])
-        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=1000,fast=True)
+        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=200,fast=True)
         params[(2*i),:] = pfmin
         lliks.append(cmodel.log_likelihood(pfmin))
 
         # initialized at twice Nat's period
         p0 = cmodel.get_init_par(2 * Pinit[i])
-        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=1000,fast=True)
+        pfmin = cmodel.optim_fmin(p0,maxiter=1000,ftol=1.,xtol=0.1,mfev=200,fast=True)
         params[((2*i)+1),:] = pfmin
         lliks.append(cmodel.log_likelihood(pfmin))
 
@@ -84,19 +86,25 @@ def plot_fig(ID, path, nper=2):
   
     # make plots
     plt.clf()
+    fig = plt.gcf()
+    fig.set_size_inches(12.0,8.0)
     # unfolded LS
     ax = plt.subplot(221)
-    cmodel.plot(ax, orig, fold=False, plot_model=True, mag=True)
+    cmodel.plot(ax, orig, fold=False, plot_model=True, mag=True, plot_title = False)
+    ax.set_title("Traditional Method",fontsize=20)
     # unfolded censored
-    ax = plt.subplot(222)
-    cmodel.plot(ax, pstar, fold=False, plot_model=True, mag=True)
+    ax2 = plt.subplot(222)
+    cmodel.plot(ax2, pstar, fold=False, plot_model=True, mag=True, plot_title = False)
+    ax2.set_title("Our Method",fontsize=20)
     # folded LC
-    ax = plt.subplot(223)
-    cmodel.plot(ax, orig, fold=True, plot_model=True, mag=True)
+    ax3 = plt.subplot(223)
+    cmodel.plot(ax3, orig, fold=True, plot_model=True, mag=True, plot_title = False)
     # folded censored
-    ax = plt.subplot(224)
-    cmodel.plot(ax, pstar, fold=True, plot_model=True, mag=True)
-    plt.savefig(path + 'plots/fig_'+ ID +'.png')
+    ax4 = plt.subplot(224)
+    cmodel.plot(ax4, pstar, fold=True, plot_model=True, mag=True, plot_title = False)
+    fn = path + 'plots/fig_'+ ID +'.png'
+    print 'Writing %s' % fn
+    plt.savefig(fn, dpi=200)
 
     return pstar
 
@@ -107,3 +115,5 @@ if __name__ == '__main__':
     ID = '045832-0604.1'
 
     plot_fig(ID,path)
+
+# [-593.81658842874822, -919.90297458282112, -857.12186094575225, -593.06992433308483]

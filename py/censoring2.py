@@ -237,7 +237,7 @@ class Censored:
 
 
 
-    def plot(self, ax, par, fold = False, plot_model = True, mag = False):
+    def plot(self, ax, par, fold = False, plot_model = True, mag = False, plot_title = True):
         '''
         input:
         - ax: matplotlib axes object
@@ -289,20 +289,20 @@ class Censored:
             y = self.m
             ey = self.em
             if(self.b == None):
-                yc = np.zeros_like(xc) + np.max(y) + 0.5
+                yc = np.zeros_like(xc) + np.max(y) + 0.25
             else:
                 yc = self.b
         else:
             y = self.f
             ey = self.ef
             yc = np.zeros_like(xc)
-        ax.plot(x - mediant, y, 'ko', alpha=0.5, mec='k')
+        ax.plot(x - mediant, y, 'ko', alpha=0.5, mec='k', markersize=4)
         hogg_errorbar(ax, x - mediant, y, ey)
-        ax.plot(xc - mediant, yc, 'r.', alpha=0.5, mec='r')
+        ax.plot(xc - mediant, yc, 'r|', alpha=0.3, mec='r', markersize=10)
         if(fold): # if fold, plot 2 phases of LC
-            ax.plot(x - mediant + 1., y, 'ko', alpha=0.5, mec='k')
+            ax.plot(x - mediant + 1., y, 'ko', alpha=0.5, mec='k', markersize=4)
             hogg_errorbar(ax, x - mediant + 1., y, ey)
-            ax.plot(xc - mediant + 1., yc, 'r.', alpha=0.5, mec='r')
+            ax.plot(xc - mediant + 1., yc, 'r|', alpha=0.3, mec='r', markersize=10)
         if(plot_model):
             if(mag):
                 mup = self.mu(tp, omega, A0, A1, B1, A01, A02)
@@ -312,9 +312,9 @@ class Censored:
                 mup = mag2flux(self.mu(tp, omega, A0, A1, B1, A01, A02), f0=self.f0)
                 mup_p = mup * (1. + np.sqrt(eta2))
                 mup_m = mup * (1. - np.sqrt(eta2))
-            ax.plot(xp - mediant, mup_p, 'b-', alpha=0.25)
-            ax.plot(xp - mediant, mup, 'b-', alpha=0.50)
-            ax.plot(xp - mediant, mup_m, 'b-', alpha=0.25)
+            ax.plot(xp - mediant, mup, 'b-', alpha=0.80)
+            #ax.plot(xp - mediant, mup_p, 'b-', alpha=0.3)
+            #ax.plot(xp - mediant, mup_m, 'b-', alpha=0.3)
         ax.set_xlim(tlim - mediant)
         if(mag):
             ax.set_ylim(np.max(y) + 1., np.min(y) - 0.5)
@@ -326,8 +326,9 @@ class Censored:
         if(fold):
             ax.set_xlabel(r'$\phi$')
         else:
-            ax.set_xlabel(r'time $t$ (MJD - %d~d)' % mediant)
-        ax.set_title(self.name)
+            ax.set_xlabel(r'time $t$ (MJD $-$ %d d)' % mediant)
+        if(plot_title):
+            ax.set_title(self.name)
         return None
 
 

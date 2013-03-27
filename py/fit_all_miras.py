@@ -31,7 +31,7 @@ from fit_censoring import *
 nper = 2
 
 #global path
-path = '../'
+path = '/Users/jwrichar/Documents/CDI/CensoredData/'
 
 #global catalog
 cat_data = np.loadtxt(path + 'data/asas_class_catalog_v2_3.dat',\
