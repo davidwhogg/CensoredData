@@ -148,36 +148,63 @@ traditional fitting obtains an integer fraction of the correct period.
 \label{sec:intro}
 
 Telescopes don't make catalogs, they make images (Hogg \& Lang 20xx).
-Nonetheless, some of the most important astronomical projects have produced
-enormously productive catalogs (the \textsl{SDSS}, for examle CITATION).
-There is a growing understanding that precise measurements
-of astronomical sources have to be made directly 
-in the imaging data
+Nonetheless, some of the most important astronomical projects have produced enormously productive catalogs
+(the \textsl{SDSS}, for examle CITATION).
+There is a growing understanding that precise measurements of astronomical sources have to be made directly in the imaging data
 (CITE Lang, Anderson, something in weak lensing):
-It is impossible to pass the full information content of the imaging to the end user
-via a catalog (which by necessity is built with point estimates of the quantities of
-interest).
+It is impossible to pass the full information content of the imaging to the end user via a catalog
+(which by necessity is built with point estimates of the quantities of interest).
 
-...time domain seems simple, because only photometry matters!
+The measurements of importance for variable-star science are relatively simple.
+Unlike the measurements used for astrometry, extragalactic transients, and weak lensing,
+where two-dimensional (morphological) information matters,
+when variable stars are being observed, all the end user wants is accurate photometry of each source at each epoch.
+One could hope that catalog-level information is sufficient:
+the detailed image morphology is not required for lightcurve extraction, except when fields are crowded.
+However, there are still limitations to working at catalog level:
+Catalog entries (nowadays) usually come with noise variance estimates,
+but they don't usually give detailed information about the locations or influence of
+bad detector pixels, cosmic rays, and flat-field variations;
+all these things might be needed to construct a precise photometric noise model or to understand residuals or artifacts.
+More importantly, catalogs are usually subject to hard \emph{censoring};
+the catalogs (nowadays) only include measurements that are deemed (by the software or catalog makers)
+to be \emph{signficant detections}.
 
-...but catalogs make censored point estimates, usually... noise, morphology, CRs, defects...
+This could change.
+In principle a catalog could contain a measurement at \emph{every} epoch for any source that is detected at \emph{any} epoch.
+This kind of ``forced photometry'' would include many non-significant measurements,
+but it would come closer to passing forward all the information in the imaging to users working at catalog level.
+We recommend this approach to the catalog makers of the future (especially those making the \textsl{LSST} catalogs).
 
-...catalogs could be better if they did forced photometry.  upper limits worse.
-nulls worse.  total obfuscation worst of all
+Less good than the comprehensive forced-photometry approach is to report, when measurements are not significant,
+a well-defined ``upper limit'' for the brightness of each source.
+This is rarely done, and upper limits are hard to use, but upper limits are an improvement over standard practice.
+Standard practice is to \emph{report nothing at all} when a source is not detected significantly.
+Indeed, it is often hard, when presented with a multi-epoch catalog,
+to determine whether the reason a particular source is missing from the imaging at a particular epoch
+is because the source was faint or because the source fell outside the imaging field of view!
 
-...here we are going to work with nulls; they can still be informative!
+In this contribution we look at improving catalog-level time-domain astronomy in the presence of \emph{censored data}.
+The problem we consider is that of period and amplitude modeling for large-amplitude variable stars in a data set
+in which \emph{no information is reported at all} at the epochs at which the star is not significantly detected.
+Furthermore, we will imagine that we also have \emph{no information at all} about the sensitivity of the telescope
+at the time of each non-detection; that is, we have no upper limits and we can't reconstruct them from any extant meta-data.
+The non-detections are literally database ``null'' values.
+This set-up may seem artificial, but it is in fact the situation we find ourselves in for various surveys,
+including the ASAS survey, data from which we will model below.
+What we will show is that \emph{the ``null'' non-detections are in fact very informative};
+amplitude and period fitting will be wrong in general if the non-detections are ignored.
+
+The benefit of using the non-detections is large, but the cost is also large:
+Use of these ``null'' data involves non-trivial modeling,
+and large numbers of latent parameters to be inferred and marginalized out.
+
+To make this all concrete, consider the photometric data from the \textsl{ASAS} survey
+depicted in \figurename~\ref{fig:example} for one Mira variable.
+The photometric detections are shown and so are the epochs at which there are nulls (or non-detections).
+The standard 
 
 ...as an example, consider \figurename~\ref{fig:example}...
-
-Surveys working in real-time tend to analyze each image with an eye to
-populating databases quickly.
-Unless a particular region of the sky gets special treatment
-(such as it is a known place of interest),
-discovery of variability happens by comparison of flux values at the database level.
-Analysis on such databases of transient/variables thus deals with censored data
-where there is often less information available than there should be.
-Even then, we might be able to infer what the thresholds were based
-on S/N measurements of objects neighboring the source of interest.
 
 \joey{What people actually do, what problems that could cause, and what people should do}
 
