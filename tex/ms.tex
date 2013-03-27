@@ -149,7 +149,7 @@ traditional fitting obtains an integer fraction of the correct period.
 
 Telescopes don't make catalogs, they make images (Hogg \& Lang 20xx).
 Nonetheless, some of the most important astronomical projects have produced enormously productive catalogs
-(the \textsl{SDSS}, for examle CITATION).
+(the \textsl{SDSS}, for example CITATION).
 There is a growing understanding that precise measurements of astronomical sources have to be made directly in the imaging data
 (CITE Lang, Anderson, something in weak lensing):
 It is impossible to pass the full information content of the imaging to the end user via a catalog
@@ -195,46 +195,29 @@ including the ASAS survey, data from which we will model below.
 What we will show is that \emph{the ``null'' non-detections are in fact very informative};
 amplitude and period fitting will be wrong in general if the non-detections are ignored.
 
+To make this all concrete, consider the photometric data from the \textsl{ASAS} survey
+depicted in \figurename~\ref{fig:badfit} for one Mira variable.
+The photometric detections are shown and so are the epochs at which there are nulls (or non-detections).
+The standard fitting procedure, given censored data like these, is to \emph{ignore the null values}.
+When the nulls are ignored, the period fitting finds a short period.
+At that period, the model predicts the star to be bright at many phases in which the survey reported nulls.
+That is, although we have no idea how or why the nulls were generated,
+they effectively provide strong evidence against the short period.
+When we include the nulls (as described below), we get a longer period.
+This longer period is obviously better because it makes the star faint whenever nulls are common.
+This example clearly illustrates that the nulls are informative.
+In this paper we demonstrate how to automatically extract that information.
+
 The benefit of using the non-detections is large, but the cost is also large:
 Use of these ``null'' data involves non-trivial modeling,
 and large numbers of latent parameters to be inferred and marginalized out.
+In particular it involves modeling the data-generating process,
+which includes variable instrument and atmospheric conditions
+(leading to different effective detection thresholds)
+and also the software process by which catalog-entry decisons are made.
+In practice our models will be very simplified, but it is impossible to proceed \emph{without} significant modeling.
 
-To make this all concrete, consider the photometric data from the \textsl{ASAS} survey
-depicted in \figurename~\ref{fig:example} for one Mira variable.
-The photometric detections are shown and so are the epochs at which there are nulls (or non-detections).
-The standard 
-
-...as an example, consider \figurename~\ref{fig:example}...
-
-\joey{What people actually do, what problems that could cause, and what people should do}
-
-A photometric survey (think of it as operating in a single photometric
-bandpass for now) scans over the celestial position of a particular
-variable star  a large number of times $t_i$.  At each of these
-times, the imaging data are analyzed by software, which
-treats each scan as a \emph{completely independent} survey.  That is,
-when analyzing the data from time $t_i$, none of the information from
-any of the other times is used in any way.
-
-At each time $t_i$, the star is either detected by the
-software or not.  When it is detected, the software returns
-a (possibly bad) flux value $f_i$ and (likely bad) uncertainty
-variance $s_i^2$.  When the source is \emph{not} detected,
-nothing is reported---in this case, because the software is not
-awesome, it doesn't see any reason to report anything at all, since on
-the non-detect passes, it has no inkling that this patch of the sky is
-interesting in any way.  Welcome to the desert of the real.
-
-Beyond this, there are two additional issues.  The first is that each
-night of imaging is different in an unreported and unknown way.  That
-is, there is different transparency, sky brightness, and point-spread
-function.  So the detection limit, or completeness level, or censoring
-of the catalog is different every night.  The second issue is that
-either because we are getting the data from a non-generous source, or
-because the conditions change rapidly and unpredictably, we can't
-analyze all the sources in a finite patch simultaneously.  For each
-variable star of interest, we \emph{only} get the data on that star
-itself.
+\hogg{either merge in or delete the material below this line}
 
 \joey{RRL end at 120 kpc in Sesar et al. paper}
 
