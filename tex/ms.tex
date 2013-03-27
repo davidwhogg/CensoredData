@@ -147,10 +147,7 @@ traditional fitting obtains an integer fraction of the correct period.
 \section{Introduction}
 \label{sec:intro}
 
-
-
 Surveys working in real-time tend to analyze each image with an eye to populating databases quickly. Unless a particular region of the sky gets special treatment (such as it is a known place of interest), discovery of variability happens by comparison of flux values at the database level. Analysis on such databases of transient/variables thus deals with censored data where there is often less information available than there should be. Even then, we might be able to infer what the thresholds were based on S/N measurements of objects neighboring the source of interest.
-
 
 \joey{What people actually do, what problems that could cause, and what people should do}
 
@@ -161,9 +158,6 @@ times, the imaging data are analyzed by software, which
 treats each scan as a \emph{completely independent} survey.  That is,
 when analyzing the data from time $t_i$, none of the information from
 any of the other times is used in any way.
-
-
-
 
 At each time $t_i$, the star is either detected by the
 software or not.  When it is detected, the software returns
@@ -193,13 +187,8 @@ itself.
 
 \joey{Numbers of LCs affected: Stripe 82, ASAS}
 
-
-
-
-\section{Formulating the Model}
+\section{The Model}
 \label{sec:model}
-
-%This note, based on the original note from JWR on Feb. 8, 2012, includes revisions from David Hogg, James Long, Nat Butler, and Josh Bloom.
 
 As a reminder, we are modeling light curve data in the presence of non-detections, which are epochs of observation in which no detection of the source of interest was made.
 
@@ -227,9 +216,6 @@ D_i &\equiv& (\fobs, \sobs)
 \end{eqnarray}
 where $(\fobs, \sobs)$ are the light curve measurements  at $t_i$.  The goal, for each astronomical object, is to construct the likelihood for the data $D$, given a set of model parameters that describe the variability of the object and the characteristics of the observations, and then to maximize the likelihood with respect to the model parameters.% or to use it in further inference.
 
-
-\section{The Light Curve Model}
-\label{sec:model}
 \subsection{Modeling Non-Detections}
 To model the mean brightness of the light curve as a function of time, we use a multiple-harmonic Fourier model with angular oscillation frequency $\omega$,
 \begin{eqnarray}\displaystyle
@@ -407,10 +393,15 @@ What people can do, starting from the data-taking procedure.
 limitations
 
 
-\acknowledgements It is a pleasure to thank Josh Bloom (Berkeley) for
-valuable discussions and comments.  Partial support for this project
-was provided by [JWR: PUT GRANT NUMBERS HERE], NASA grant NNX12AI50G,
-and NSF grant IIS-1124794.
+\acknowledgements It is a pleasure to thank
+%
+  Josh Bloom (Berkeley) and
+  Nat Butler (ASU)
+%
+for valuable discussions and comments.
+%
+Partial support for this project was provided by \hogg{[JWR: PUT GRANT
+  NUMBERS HERE]}, NASA grant NNX12AI50G, and NSF grant IIS-1124794.
 
 \bibliography{non_detect}
 
