@@ -22,12 +22,13 @@ from lomb_scargle_censor import lomb as lombc
 
 from fit_censoring import load_lc_from_web, periods_lomb, period_lombc
 
-def plot_fig(ID, path, nper=2):
+def plot_fig(ID, path, nper=2, simulation=False):
     """ plot folded and unfolded LS and censored model fits
     """
-    data = load_lc_from_web(ID)
-
-    print path + 'plots/fig_'+ ID +'.png'
+    if(simulation):
+        data = load_sim(path+ID)
+    else:
+        data = load_lc_from_web(ID)
 
     indo = np.where(data['m'] != 29.999)
     tobs = data['t'][indo]
@@ -90,11 +91,11 @@ def plot_fig(ID, path, nper=2):
     fig.set_size_inches(12.0,8.0)
     # unfolded LS
     ax = plt.subplot(221)
-    cmodel.plot(ax, orig, fold=False, plot_model=True, mag=True, plot_title = False)
+    cmodel.plot(ax, orig, fold=False, plot_model=True, mag=True, plot_title = False, period=orig[0])
     ax.set_title("Traditional Method",fontsize=20)
     # unfolded censored
     ax2 = plt.subplot(222)
-    cmodel.plot(ax2, pstar, fold=False, plot_model=True, mag=True, plot_title = False)
+    cmodel.plot(ax2, pstar, fold=False, plot_model=True, mag=True, plot_title = False, period=pstar[0])
     ax2.set_title("Our Method",fontsize=20)
     # folded LC
     ax3 = plt.subplot(223)
@@ -102,18 +103,39 @@ def plot_fig(ID, path, nper=2):
     # folded censored
     ax4 = plt.subplot(224)
     cmodel.plot(ax4, pstar, fold=True, plot_model=True, mag=True, plot_title = False)
-    fn = path + 'plots/fig_'+ ID +'.png'
+    
+    if(simulation):
+        fn = path + 'plots/fig_simulation_'+ ID.split('_')[-1].replace('.','_') +'.png'
+    else:
+        fn = path + 'plots/fig_'+ ID +'.png'
+        
     print 'Writing %s' % fn
     plt.savefig(fn, dpi=200)
 
     return pstar
 
 
+def load_sim(fpath):
+    """ read in simulated light curve and return dict of t, m, e """
+    data = np.loadtxt(fpath, dtype={'names': ('t', 'm', 'e'),
+                                    'formats': (np.float, np.float, np.float)})
+    return data
+
+
+
 if __name__ == '__main__':
-    # choose a mira to run it on
     path = '/Users/jwrichar/Documents/CDI/CensoredData/'
-    ID = '045832-0604.1'
 
-    plot_fig(ID,path)
+    if 0:
+        IDs = ['045832-0604.1', '075826-4019.8', '075855-1914.1', '091617-2936.7', '034344+0655.5',\
+               '065220+0144.8', '082012-3816.7', '092021-5815.2', '065002-4554.6', '112811-6606.3'  ]
 
-# [-593.81658842874822, -919.90297458282112, -857.12186094575225, -593.06992433308483]
+        for ii in IDs:
+            plot_fig(ii, path)
+
+        # [-593.81658842874822, -919.90297458282112, -857.12186094575225, -593.06992433308483]
+
+    ID_sims = os.listdir('data/mira_sims')
+    for jj in ID_sims:
+        plot_fig('data/mira_sims/'+jj, path, simulation=True)
+    

@@ -237,7 +237,8 @@ class Censored:
 
 
 
-    def plot(self, ax, par, fold = False, plot_model = True, mag = False, plot_title = True):
+    def plot(self, ax, par, fold = False, plot_model = True, mag = False, plot_title = True,\
+             period = None):
         '''
         input:
         - ax: matplotlib axes object
@@ -317,7 +318,7 @@ class Censored:
             #ax.plot(xp - mediant, mup_m, 'b-', alpha=0.3)
         ax.set_xlim(tlim - mediant)
         if(mag):
-            ax.set_ylim(np.max(y) + 1., np.min(y) - 0.5)
+            ax.set_ylim(np.max(y) + 0.5, np.min(y) - 0.5)
             ax.set_ylabel(r'magnitude $m$ (mag)')
         else:
             foo = np.max(y + ey)
@@ -329,6 +330,11 @@ class Censored:
             ax.set_xlabel(r'time $t$ (MJD $-$ %d d)' % mediant)
         if(plot_title):
             ax.set_title(self.name)
+        if(period != None):
+            ax.text(0.05, 0.95,'P = %.1f d' % period,
+                    horizontalalignment='left',
+                    verticalalignment='center',
+                    transform = ax.transAxes)
         return None
 
 

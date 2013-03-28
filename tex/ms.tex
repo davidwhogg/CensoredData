@@ -408,7 +408,7 @@ Partial support for this project was provided by \hogg{[JWR: PUT GRANT
 \clearpage
 \begin{figure}
   \begin{center}
-\includegraphics[angle=0,width=6.5in]{../plots/fig_045832-0604_1.png}
+\includegraphics[angle=0,width=6.5in]{fig_045832-0604_1.png}
   \end{center}
   \caption{A comparison of the best fit obtained by the traditional method (left) and our censored data model (right) on the Mira variable ASAS 045832-0604.1.  The top row shows the respective model fits to the raw light curves while the bottom row displays the period-folded data and models.  The black dots denote the observed data and the red vertical dashes mark the epochs of null observation.  The traditional fitting method clearly obtains half the true period while our method recovers the correct period.  The traditional method fails because it identifies a reasonable high-frequency fit to the observed data which completely ignores the null observations.  Note that alternate cycles of the traditional model fit contain no observed data.  By contrast, our method fully accounts for the null observations using a probability model.\label{fig:badfit}}
 \end{figure}
@@ -425,26 +425,45 @@ Partial support for this project was provided by \hogg{[JWR: PUT GRANT
 \clearpage
 \begin{figure}
 \begin{center}
-\includegraphics[angle=0,width=6.5in]{../plots/mira_simulated.pdf}
+$\begin{array}{c@{\hspace{-.3in}}c}
+\multicolumn{1}{l}{\mbox{\bf (a)}} & \multicolumn{1}{l}{\mbox{\bf (b)}} \\      \vspace{-.1in}
+\includegraphics[angle=0,width=3.5in]{fig_simulation_0_01_dat.png} & \includegraphics[angle=0,width=3.5in]{fig_simulation_0_02_dat.png} \\
+\multicolumn{1}{l}{\mbox{\bf (c)}} & \multicolumn{1}{l}{\mbox{\bf (d)}} \\
+\includegraphics[angle=0,width=3.5in]{fig_simulation_0_05_dat.png} & \includegraphics[angle=0,width=3.5in]{fig_simulation_0_1_dat.png}
+\end{array}$
+%\includegraphics[angle=0,width=6.5in]{../plots/mira_simulated.pdf}
 \end{center}
-\caption{ Folded light curves for data simulated from the Mira variable ASAS 235627-4947.2 using the prescription in \S\ref{ss:mirasim}.  Blue tick marks along the bottom axis denote phases where there were non-detections.  As the original flux measurements are dimmed by higher factors, the troughs of the sinusoidal light curve are censored, resulting in an incomplete view of the data.  \hogg{This figure needs to show the OLD and NEW best-fit lightcurve models too!}\label{fig:mirasim}}
+\caption{ \joey{rewrite this caption!} Folded light curves for data simulated from the Mira variable ASAS 235627-4947.2 using the prescription in \S\ref{ss:mirasim}.  Blue tick marks along the bottom axis denote phases where there were non-detections.  As the original flux measurements are dimmed by higher factors, the troughs of the sinusoidal light curve are censored, resulting in an incomplete view of the data.  \hogg{This figure needs to show the OLD and NEW best-fit lightcurve models too!}\label{fig:mirasim}}
 \end{figure}
 
 \clearpage
 \begin{figure}
   \begin{center}
-    [\hogg{PUT FIGURE HERE}]
+$\begin{array}{c@{\hspace{-.3in}}c}
+\multicolumn{1}{l}{\mbox{\bf (a)} \hspace{0.7in} \textrm{ ASAS 034344+0655.5}} & \multicolumn{1}{l}{\mbox{\bf (b)}\hspace{0.7in}  \textrm{ ASAS 091617-2936.7}} \\      \vspace{-.1in}
+\includegraphics[angle=0,width=3.5in]{fig_034344+0655_5.png} & \includegraphics[angle=0,width=3.5in]{fig_091617-2936_7.png} \\
+\multicolumn{1}{l}{\mbox{\bf (c)}\hspace{0.7in}  \textrm{ ASAS 075855-1914.1}} & \multicolumn{1}{l}{\mbox{\bf (d)}\hspace{0.7in}  \textrm{ ASAS 075826-4019.8}} \\
+\includegraphics[angle=0,width=3.5in]{fig_075855-1914_1.png} & \includegraphics[angle=0,width=3.5in]{fig_075826-4019_8.png}
+\end{array}$
   \end{center}
-  \caption{A real-data example.  This is the same source as that shown in \figurename~\ref{fig:badfit} but now showing the results of...\label{fig:goodfit}}
+  \caption{ \joey{add caption: period doubling} A real-data example.  This is the same source as that shown in \figurename~\ref{fig:badfit} but now showing the results of...\label{fig:goodfit}}
 \end{figure}
+
 
 \clearpage
 \begin{figure}
   \begin{center}
-    [\hogg{PUT FIGURE HERE}]
+$\begin{array}{c@{\hspace{-.3in}}c}
+\multicolumn{1}{l}{\mbox{\bf (a)} \hspace{0.7in} \textrm{ ASAS 112811-6606.3}} & \multicolumn{1}{l}{\mbox{\bf (b)}\hspace{0.7in}  \textrm{ ASAS 065002-4554.6}} \\      \vspace{-.1in}
+\includegraphics[angle=0,width=3.5in]{fig_112811-6606_3.png} & \includegraphics[angle=0,width=3.5in]{fig_065002-4554_6.png} \\
+\multicolumn{1}{l}{\mbox{\bf (c)}\hspace{0.7in}  \textrm{ ASAS 092021-5815.2}} & \multicolumn{1}{l}{\mbox{\bf (d)}\hspace{0.7in}  \textrm{ ASAS 082012-3816.7}} \\
+\includegraphics[angle=0,width=3.5in]{fig_092021-5815_2.png} & \includegraphics[angle=0,width=3.5in]{fig_082012-3816_7.png}
+\end{array}$
   \end{center}
-  \caption{Another few real-data examples; in each case the method presented here either matches the traditional method or is substantially better.\label{fig:examples}}
+  \caption{\joey{add caption: period tripling} Another few real-data examples; in each case the method presented here either matches the traditional method or is substantially better.\label{fig:examples}}
 \end{figure}
+
+
 
 \clearpage
 \begin{figure}
