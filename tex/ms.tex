@@ -148,7 +148,7 @@ traditional fitting obtains an integer fraction of the correct period.
 \label{sec:intro}
 
 Telescopes don't make catalogs, they make images (Hogg \& Lang 20xx).
-Nonetheless, some of the most important astronomical projects have produced enormously productive catalogs
+Nonetheless, some of the most important astronomical projects have produced enormously valuable catalogs
 (the \textsl{SDSS}, for example CITATION).
 There is a growing understanding that precise measurements of astronomical sources have to be made directly in the imaging data
 (CITE Lang, Anderson, something in weak lensing):
@@ -161,20 +161,20 @@ where two-dimensional (morphological) information matters,
 when variable stars are being observed, all the end user wants is accurate photometry of each source at each epoch.
 One could hope that catalog-level information is sufficient:
 the detailed image morphology is not required for lightcurve extraction, except when fields are crowded.
-However, there are still limitations to working at catalog level:
+However, there are still limitations to working at the catalog level:
 Catalog entries (nowadays) usually come with noise variance estimates,
-but they don't usually give detailed information about the locations or influence of
+but they do not typically give detailed information about the locations or influence of
 bad detector pixels, cosmic rays, and flat-field variations;
 all these things might be needed to construct a precise photometric noise model or to understand residuals or artifacts.
 More importantly, catalogs are usually subject to hard \emph{censoring};
 the catalogs (nowadays) only include measurements that are deemed (by the software or catalog makers)
-to be \emph{signficant detections}.
+to be \emph{significant detections}.
 
 This could change.
 In principle a catalog could contain a measurement at \emph{every} epoch for any source that is detected at \emph{any} epoch.
 This kind of ``forced photometry'' would include many non-significant measurements,
 but it would come closer to passing forward all the information in the imaging to users working at catalog level.
-We recommend this approach to the catalog makers of the future (especially those making the \textsl{LSST} catalogs).
+We recommend this approach to the catalog makers of the future (especially those constructing the \textsl{LSST} catalogs).
 
 Less good than the comprehensive forced-photometry approach is to report, when measurements are not significant,
 a well-defined ``upper limit'' for the brightness of each source.
@@ -191,22 +191,23 @@ Furthermore, we will imagine that we also have \emph{no information at all} abou
 at the time of each non-detection; that is, we have no upper limits and we can't reconstruct them from any extant meta-data.
 The non-detections are literally database ``null'' values.
 This set-up may seem artificial, but it is in fact the situation we find ourselves in for various surveys,
-including the \textsl{ASAS} survey (CITATION), data from which we will model below.
+including the All-Sky Automated Survey (\textsl{ASAS}, \citealt{2001ASPC..246...53P}), data from which we will model below.
 What we will show is that \emph{the ``null'' non-detections are in fact very informative};
 amplitude and period fitting will be wrong in general if the non-detections are ignored.
 
-To make this all concrete, consider the photometric data from the \textsl{ASAS} survey
-depicted in \figurename~\ref{fig:badfit} for one Mira variable.
-The photometric detections are shown and so are the epochs at which there are nulls (or non-detections).
+To make this more concrete, consider the photometric data from the \textsl{ASAS} survey,
+depicted in \figurename~\ref{fig:badfit} for a single Mira variable.
+The photometric detections are plotted and so are the epochs at which there are nulls (non-detections).
 The standard fitting procedure, given censored data like these, is to \emph{ignore the null values}.
-When the nulls are ignored, the period fitting finds a short period.
-At that period, the model predicts the star to be bright at many phases in which the survey reported nulls.
-That is, although we have no idea how or why the nulls were generated,
-they effectively provide strong evidence against the short period.
-When we include the nulls (as described below), we get a longer period.
-This longer period is obviously better because it makes the star faint whenever nulls are common.
+When the nulls are ignored, the period-fitting method finds a short period.
+At that period, the model predicts the star to be bright at many phases in which the survey reported null observations.
+However, the presence of a null observation means that it is likely that the source brightness has dipped below the detection limit at that epoch.
+%That is, although we have no idea how or why the nulls were generated,
+%they effectively provide strong evidence against the short period.
+When we include the nulls in our model (as described in \S\ref{sec:model}), we find that the best fit is a longer-period, higher-amplitude model.
+This longer period is obviously better because it models the star to be faint at epochs where nulls commonly occur.
 This example clearly illustrates that the nulls are informative.
-In this paper we demonstrate how to automatically extract that information.
+In this paper we demonstrate how to automatically incorporate that information in a rigorous statistical model.
 
 The benefit of using the non-detections is large, but the cost is also large:
 Use of these ``null'' data involves non-trivial modeling,
@@ -214,8 +215,8 @@ and large numbers of latent parameters to be inferred and marginalized out.
 In particular it involves modeling the data-generating process,
 which includes variable instrument and atmospheric conditions
 (leading to different effective detection thresholds)
-and also the software process by which catalog-entry decisons are made.
-In practice our models will be very simplified, but it is impossible to proceed \emph{without} significant modeling.
+and also the software process by which catalog-entry decisions are made.
+In practice our models will be very simplified, but it is impossible---in the presence of such noisy and imperfect data---to proceed \emph{without} significant modeling.
 
 \hogg{note to self: either merge in or delete the material below this line}
 
@@ -369,41 +370,54 @@ To maximize the data likelihood with respect to $\theta$, we use the {\tt fmin} 
 
 
 
-Replacing likelihood with fast version where we trust $s_i^2$ for observed data.
+Replacing likelihood with fast version where we trust $s_i^2$ for observed data. \joey{I need to finish this}
+
+
+\joey{we should include a link to the git repo}
 
 
 
-
-
-\section{Experiments}
+\section{Experiment: Period Estimation for Mira Variables}
 \label{sec:experiments}
+
+In this section, we compare  the methodology from \S\ref{sec:model} to the traditional fitting method that does not incorporate null observations (the generalized Lomb-Scargle periodogram; \citealt{1976lomb, 1982scar, zech09}).  The goal in the simulation study is to compare the abilities of the two methods for period and amplitude estimation on a series of simulated Mira variables.  Of particular interest is to gauge the efficacy of each fitting method when applied to light curves at different observed (median) brightness levels.
+
+
+\subsection{Simulating Faint Mira Variables}
+\label{ss:mirasim}
+
+In this first experiment, we begin with a well-observed Mira variable from the ASAS Catalog of Variable Stars (ACVS, \citealt{acvs}) , ASAS 235627-4947.2.  This star has a pulsation period of 266.5245 days and a Lomb-Scargle amplitude of 2.36 mag ($V$ band) based on 408 epochs of observations with zero null detections.  The median observed brightness of the ASAS light curve is $V = 10.4$.
+
+We will employ the ASAS observations of this bright, well-observed star to simulate what the same star would look like at different median observed brightness levels.  As the star's observed brightness is artificially changed to fainter and fainter values, its simulated ASAS light curve will contain a larger and larger number of null observations.  Effectively, artificially dimming the star decreases the signal to noise ratio of each observation, which will cause some of the original detections to change into non-detections.
+
+To simulate faint Mira stars from ASAS 235627-4947.2, we use the following procedure:
+\begin{enumerate}
+\item Convert the observed magnitudes $m_i$ and uncertainty variances $s^2_{m,i}$ to fluxes $f_i$ and flux uncertainty variances $s^2_{f,i}$ (we assume a $V$-band zero-point of $3.67\times10^{-9}$ erg/s/cm$^2$/\AA).
+\item For a given flux dimming parameter, $d$, sample the new fluxes, $\tilde{f}_i$, from a Gaussian distribution centered around $f_i / d$ with standard deviation sampled from the empirical ASAS distribution of $s^2_{f,i} | f_i$. We simulate 10 different Mira variables by employing different values of $d$, ranging from 1 to 500.
+\item Flux measurements of the `dimmed' light curve that are not at least 5$\sigma$ above zero are denoted as non-detections and their flux estimates (and errors) are censored and nulled out.
+\end{enumerate}
+Folded and unfolded versions of these simulated light curves are plotted in Figure \ref{fig:mirasim}.
+
+
+\subsection{Results of Fitting Simulations}
+
+We apply both the traditional method and our censored fitting method to each of the 10 simulated light curves.  Fits to four of the simulations are plotted in Figure \ref{fig:mirasim}.  In three of the four simulations, the traditional method estimates an incorrect period whereas our method recovers the true period, to within $\sim1 \%$, in each case.  Clearly, the censoring method works well because it incorporates the abundant null observations, effectively discovering the period which best places them  at phases for which the light-curve model dips below the inferred detection limit.  Remarkably, even for the faintest simulation ($V=16.7$), our method estimates the correct period even though only 7 epochs of observations were recorded (Figure \ref{fig:mirasim}d).  This demonstrates the value in utilizing the null detections: whereas the traditional method completely ignores the information in the 401 null non-detections, our model fully incorporates it when determining the best-fit period and sinusoid model.
+
+Figure \ref{fig:mirasimparams} depicts the estimates of the period and amplitude of the Mira star as a function of the median $V$-band magnitude of the simulated source.  Whereas our method recovers the correct period for each simulation, the traditional period-finding method only works well for the five brightest simulations ($V \lesssim 14$).  For fainter magnitudes, the traditional method mistakenly detects a period of one-half or one-third the value of the true period.  The story for amplitude estimation is similar: even for the faintest stars, the estimates of our method are reasonably well-behaved (all within 1 mag of the true amplitude) whereas the amplitude estimates from the traditional method quickly fall to very small values as the brightness of the simulation decreases.
+
+  It is important to note that our fitting method typically takes longer than the traditional generalized Lomb-Scargle periodogram to fit a light curve.  The amount of compute time for our method depends heavily on the number of null observations.  For example, on a single core of a MacBook Pro with 2.9 GHz Intel Core and 8 GB of memory, our method takes 291 seconds for the faintest simulation (401 null detections), 80 seconds for the simulation at 12.8th magnitude (105 null detections) and 0.24 seconds for the brightest simulation (0 null detections).  For comparison, the traditional method takes less than 0.1 seconds in each case.
+
+
+
+\section{Application to Mira Light Curves in ASAS}
+\label{sec:results}
+
+We use the methodology of \cite{2011arXiv1106.2832R} to select the top ASAS Mira  and RR Lyrae, Fundamental Mode candidates.  Using a Mira classification probability threshold of 0.8 gives us 1720 Mira  and 1029 RR Lyrae candidates.
 
 \joey{Note: ASAS provides periods and amplitude for all of the objects in ACVS!  We can and should use this as a comparison set}
 
 \joey{From a brief reading of a few Mira papers, it seems that some papers throw away Miras for which no trough of the LC was observed.  This seems silly.  I have an idea of the P-A plots from Hipparcos.  Should be a good comparison set.  Also, we can consider applying this to Hipparcos, which has publicly available data.}
 
-\subsection{Simulating Faint Mira Variables}
-\label{ss:mirasim}
-
-In this first experiment, we begin with a well-observed Mira variable from the ASAS Catalog of Variable Stars (ACVS, \citealt{acvs}) , ASAS 235627-4947.2.  This star has a pulsation period of 266.6286 days and a Lomb-Scargle amplitude of 2.38 mag (V band).  Note there are no non-detections in the ASAS light curve.
-
-To simulate faint Mira stars from ASAS 235627-4947.2, we use the following procedure:
-\begin{enumerate}
-\item Convert the observed magnitudes $m_i$ and uncertainty variances $s^2_{m,i}$ to fluxes $f_i$ and flux uncertainty variances $s^2_{f,i}$ (we assume a V-band zero-point of $3.67\times10^{-9}$ erg/s/cm$^2$/\AA)
-\item For a given flux dimming parameter, $d$, sample the new fluxes, $\tilde{f}_i$, from a Gaussian distribution centered around $f_i / d$ with standard deviation sampled from the empirical ASAS distribution of $s^2_{f,i} | f_i$. \joey{I found that relationship to be linear with a slope $\approx 1$, which is probably BS since the ASAS mag errors are all crap.  So I added a reference value to each flux error to ensure a mag limit $\approx$ 14.5 mag.}
-\item Fluxes that are not at least 5$\sigma$ above zero are denoted as non-detections and their flux estimates (and errors) are censored.
-\end{enumerate}
-Folded light curves of ASAS 235627-4947.2, dimmed by four different values of $d$, are plotted in Figure \ref{fig:mirasim}.
-
-
-
-\subsection{Results of Fitting Miras}
-
-
-\section{Results: ASAS Light Curves}
-\label{sec:results}
-
-We use the methodology of \cite{2011arXiv1106.2832R} to select the top ASAS Mira  and RR Lyrae, Fundamental Mode candidates.  Using a posterior probability threshold of 0.8 gives us 1720 Mira  and 1029 RR Lyrae candidates.
 
  \subsection{Mira Variables}
 
@@ -415,14 +429,6 @@ Figure \ref{fig:miraPA} shows the period-amplitude relationship for the set of M
  
 
 
-
- \subsection{RR Lyrae Variables}
-
-  Show P - A relationship before and after using the method
-
-There is an RRL P - A relationship (strong linear anti-correlation)
-
-As a selection criterion (simulated data?)
 
 
 \section{Discussion}
@@ -462,19 +468,33 @@ Partial support for this project was provided by \hogg{[JWR: PUT GRANT
   \caption{The graphical representation of the probability distribution.\label{fig:graph}}
 \end{figure}
 
+
+
+
 \clearpage
 \begin{figure}
 \begin{center}
 $\begin{array}{c@{\hspace{-.3in}}c}
-\multicolumn{1}{l}{\mbox{\bf (a)}} & \multicolumn{1}{l}{\mbox{\bf (b)}} \\      \vspace{-.1in}
-\includegraphics[angle=0,width=3.5in]{fig_simulation_0_01_dat.png} & \includegraphics[angle=0,width=3.5in]{fig_simulation_0_02_dat.png} \\
-\multicolumn{1}{l}{\mbox{\bf (c)}} & \multicolumn{1}{l}{\mbox{\bf (d)}} \\
-\includegraphics[angle=0,width=3.5in]{fig_simulation_0_05_dat.png} & \includegraphics[angle=0,width=3.5in]{fig_simulation_0_1_dat.png}
+\multicolumn{1}{l}{\mbox{\bf (a)} \hspace{0.1in} V=16.7} & \multicolumn{1}{l}{\mbox{\bf (b)}\hspace{0.1in} V=15.5} \\      \vspace{-.1in}
+\includegraphics[angle=0,width=3.5in]{fig_simulation_0_002_dat.png} & \includegraphics[angle=0,width=3.5in]{fig_simulation_0_007_dat.png} \\
+\multicolumn{1}{l}{\mbox{\bf (c)}\hspace{0.1in} V=14.6} & \multicolumn{1}{l}{\mbox{\bf (d)}\hspace{0.1in} V=13.6} \\
+\includegraphics[angle=0,width=3.5in]{fig_simulation_0_02_dat.png} & \includegraphics[angle=0,width=3.5in]{fig_simulation_0_05_dat.png}
 \end{array}$
 %\includegraphics[angle=0,width=6.5in]{../plots/mira_simulated.pdf}
 \end{center}
-\caption{ \joey{rewrite this caption!} Folded light curves for data simulated from the Mira variable ASAS 235627-4947.2 using the prescription in \S\ref{ss:mirasim}.  Blue tick marks along the bottom axis denote phases where there were non-detections.  As the original flux measurements are dimmed by higher factors, the troughs of the sinusoidal light curve are censored, resulting in an incomplete view of the data.  \hogg{This figure needs to show the OLD and NEW best-fit lightcurve models too!}\label{fig:mirasim}}
+\caption{ Results of period fitting analysis for 4 of the Mira simulations based on the ASAS 235627-4947.2 light curve.  In each figure, the left-hand column shows the result of the traditional fitting method and the right-hand column depicts the result of our method.  For each of the simulations shown, our method discovers the true period (to within $\sim 1\%$), even down to a median Mira magnitude of $V=16.7$ (panel a).  On the other hand, the traditional fitting method finds a wrong period for all but the brightest simulation plotted ($V=13.6$, panel d).  Likewise, the amplitude estimates for our method are clearly better than those of the traditional method.  Even with as few as 7 observed epochs of data, our method successfully recovers the true period because it utilizes the 400 null observations.    \label{fig:mirasim}}
 \end{figure}
+
+
+\clearpage
+\begin{figure}
+\begin{center}
+\includegraphics[angle=0,width=6.5in]{simulation_parameter_estimates.png}
+\end{center}
+\caption{  Period and amplitude estimates of simulated Mira variables.  Top: Our method (dashed blue line) recovers the true period for each simulated brightness level while the traditional method fails for the five faintest simulations.  The dashed gray line denotes the `true' period, determined by analysis on the original, well-sampled Mira.  Bottom: For amplitude estimation, our method determines values which are much closer to the true value (dashed gray line), even for faint Mira simulations.  Because it ignores the null observations, the traditional method recovers  amplitudes that are much too small for faint Miras.    \label{fig:mirasimparams}}
+\end{figure}
+
+
 
 \clearpage
 \begin{figure}
