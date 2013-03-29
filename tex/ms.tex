@@ -218,15 +218,17 @@ which includes variable instrument and atmospheric conditions
 and also the software process by which catalog-entry decisions are made.
 In practice our models will be very simplified, but it is impossible---in the presence of such noisy and imperfect data---to proceed \emph{without} significant modeling.
 
-\hogg{note to self: either merge in or delete the material below this line}
-
-\joey{RRL end at 120 kpc in Sesar et al. paper}
-
-\joey{discuss in context of: parameter estimation (amplitude / period), discovery (we're gonna find a lot more variable sources if we take the non-detections into account), and classification; lossiness}
-
-\joey{let's make a point to stress variable discovery}
-
-\joey{Numbers of LCs affected: Stripe 82, ASAS}
+In what follows, we concentrate on parameter estimation---fitting of amplitudes and periods to noisy censored data%
+---but because modeling, parameter estimation, discovery, and classification are intertwined,
+this work has implications in all these areas.
+For example, we often conclude that a star \emph{is} a periodic variable because parameter estimation delivers a solid period.
+We often conclude that a star is a Mira or a RR Lyrae star because it's best-fit period or lightcurve shape is in some range.
+For example, the valuable RR Lyrae catalog generated with \textsl{SDSS Stripe 82} data (CITE SESAR) classified stars
+by performing parameter estimation and then cutting on derived parameters.
+This study worked in the traditional mode of ignoring censored data, thereby limiting its ability to find the faintest
+(and therefore most distant) RR Lyrae stars.
+A model for the censored data might have extended the reach of this survey and led to new discoveries of Milky Way structure.
+\hogg{Joey: add words here about your own variable-star catalog and what could be improved.}
 
 \section{The Model}
 \label{sec:model}
@@ -434,9 +436,11 @@ Figure \ref{fig:miraPA} shows the period-amplitude relationship for the set of M
 \section{Discussion}
 \label{sec:discussion}
 
-What people can do, starting from the data-taking procedure.
+\hogg{This section should include limitations of what we have done:  We didn't vary all available model parameters.  Our code is slow.  We don't permit time dependence to the censoring model.  Our noise model is naive at best.}
 
-limitations
+\hogg{This section should return to the detection point and the promise of that.}
+
+\hogg{This section should NOT be a summary of the paper:  That lives in the abstract!}
 
 
 \acknowledgements It is a pleasure to thank
