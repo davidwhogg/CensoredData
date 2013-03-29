@@ -435,12 +435,44 @@ Figure \ref{fig:miraPA} shows the period-amplitude relationship for the set of M
 
 \section{Discussion}
 \label{sec:discussion}
+% This section should NOT be a summary of the paper:  That lives in the abstract!
 
-\hogg{This section should include limitations of what we have done:  We didn't vary all available model parameters.  Our code is slow.  We don't permit time dependence to the censoring model.  Our noise model is naive at best.}
+We have shown that even the apparently ``null'' information that a
+source was not detected can nonetheless be very informative, if the
+generation of the nulls is \emph{modeled}.  This is true even in the
+worst-case scenario that telescope sensitivity is not known or
+derivable from the data or any meta data.  The inclusion of the null
+data can have important impacts on parameter estimation; in particular
+we have shown that it improves variable-star period and amplitude
+estimation in heavily censored data sets.
 
-\hogg{This section should return to the detection point and the promise of that.}
+Modeling the nulls brings great benefit.  It comes at cost, however:
+Optimizing the marginalized likelihood (marginalizing out the latent
+parameters related to the censoring) is computationally expensive.
+It would be even more expensive if we had permitted all the
+variables in our graphical model (\figurename~\ref{fig:pgm}) to vary.
+Our method is far slower than the traditional method of ignoring the
+nulls and performing linear least-squares fitting.
 
-\hogg{This section should NOT be a summary of the paper:  That lives in the abstract!}
+There are also various limitations to our approach, or aspects of what
+we have presented here that could use improvement.  One is that our
+noise model and censoring model were both extremely naive.  We
+effectively assumed that the censoring process was related very
+directly to signal-to-noise; this might not be the case in many
+experiments.  In particular, sources are often missed because of
+detector issues or chip gaps or other hardware-related reasons.  These
+nulls could be modeled by our model without modification, but it would
+be a ``bad fit'' to the true data-generating process.  A better model
+might be a ``mixture'' model that permits some censoring to be caused
+by more arbitrary processes.
+
+We also assumed that the censoring process is constant in time.  This
+is not true in general; in most optical systems the censoring would
+depend (at least in part) on the weather, and the weather depends on
+season and year.  It would be straightforward to add parameters that
+permit the censoring to depend on season and year.
+
+\hogg{This section should return to the detection point and the promise of that.  Can we give an example in ASAS of a de novo detection?}
 
 
 \acknowledgements It is a pleasure to thank
