@@ -64,6 +64,7 @@ def find_peaks(x):
 
 def load_lc_from_web(ID):
     urlpath = 'http://www.astrouw.edu.pl/cgi-asas/asas_cgi_get_data?'
+    ## ur looks like http://www.astrouw.edu.pl/cgi-asas/asas_cgi_get_data?000006+2553.2,asas3
     ur = ulib.urlopen( urlpath + ID + ',asas3')#open url
     miradata = np.loadtxt(ur, usecols=(0,2,7,11), \
                           dtype=[('t',np.float64), ('m',np.float64), ('e',np.float64),\
