@@ -39,20 +39,20 @@ def load_lc_from_web(ID):
 
 
 
-## just do 100 l.c.'s
+## get all light curves from ogle
 p_mira = 0.75
 miras = np.where(np.logical_and(cat_data['Pmira'] > p_mira , cat_data['anom'] < 3.))[0] 
 
 
+
 errors = list()
-miras = miras[0:200]
 for mira in miras:
     data = load_lc_from_web(cat_data[mira][0])
-    data.tofile("../data/mira_asas/" + cat_data[mira][0] + ".dat",sep="\n")
+    np.savetxt("../data/mira_asas/" + cat_data[mira][0] + ".dat", data, delimiter = ',',fmt = '%s %s %s %s')
     indo = np.where(data['m'] != 29.999)
     eobs = data['e'][indo]
     errors.append(eobs)
-    time.sleep(1)
+    time.sleep(2)
 
 
 er = np.empty(sum(map(len,errors)))
