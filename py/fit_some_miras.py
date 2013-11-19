@@ -153,6 +153,7 @@ def doMira(ind, catalog):
     
     f_handle = file(path + 'data/new_periods_10.dat', 'a')
     np.savetxt(f_handle, new_periods, delimiter = ',',fmt = '%s %s %s %s %s %s')
+
     f_handle.close()
     
     return catalog['ID'][ind]
