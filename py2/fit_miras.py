@@ -31,6 +31,8 @@ for ii in range(1000):
 
 
 ## effectively need to do a join operation
+## we have (periods,miras) and (asas_periods,asas_names) 
+## join on miras / asas_names
 periods
 fname = "../data/ACVS.1.1"
 asas_names = np.loadtxt(fname,usecols=(0,),skiprows=2,dtype='S20')
