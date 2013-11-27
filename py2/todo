@@ -1,0 +1,7 @@
+July 27, 2013
+
+todo
+
+1. do grid search that is equally spaced for frequencies or equally spaced inperiods?
+
+2. code up simplest version of algorithm (w/o undertainty on uncertainty, w/o fractional variance, censoring based on \mu_i rather than m_i). compare to full results joey's code. how long does algorithm take / frequency.
