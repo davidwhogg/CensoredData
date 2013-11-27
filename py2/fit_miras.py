@@ -1,3 +1,14 @@
+### 
+### 
+### FIT ALL MIRAS IN data/mira_asas USING ORDINARY LOMB SCARGLE
+### THESE WERE SELECTED BY BIG MACC AS LIKELY MIRAS 
+###
+### by James Long 
+### date: TODAY'S DATE 
+### 
+
+
+
 import numpy as np
 import lomb
 
@@ -8,6 +19,10 @@ from multiprocessing import Pool
 def EstimatePeriodAndPlot(ID,
                           f_in="../data/mira_asas/",
                           f_out="diag_figs/mira_plots/"):
+    """
+    Determine the period and make plot with period of
+    light curve with ID.
+    """
     print ID
     star = np.loadtxt(f_in + ID + ".dat",
                       usecols=(0,1,2),skiprows=0)
@@ -38,29 +53,48 @@ def EstimatePeriodAndPlot(ID,
 
 
 if __name__ == "__main__":
+    ### first estimate periods for set of miras from ASAS
+    ## get filepath/filename.dat
+    mira_periods = "../data/mira_periods.dat"
+
     miras = glob.glob("../data/mira_asas/*")
+    ## get filename
     mirasIDs = map(lambda x: x.split("/")[-1].split(".dat")[0],miras)
+    ## run EstimatePeriodAndPlot on all mirasIDs in parallel
     pool = Pool(processes=7)
     result = pool.map(EstimatePeriodAndPlot, mirasIDs)
+    ## save periods with source id in file
     data = np.column_stack((mirasIDs,result))
-    np.savetxt("../data/mira_periods.dat",data,delimiter=" ", fmt="%s")
+    np.savetxt(mira_periods,data,delimiter=" ", fmt="%s")
 
 
+    ### now make scatterplot of our periods versus ACVS estimated periods
+    our = np.loadtxt(mira_periods,usecols=(0,1),
+                     dtype=[('ID','S20'),('period',np.float64)])
+
+    ## data/ACVS.1.1 has periods of all asas stars
+    fname = '../data/ACVS.1.1'
+    acvs = np.loadtxt(fname,usecols=(0,1),
+                      dtype=[('ID','S20'),('period',np.float64)])
 
 
+    present = np.array(map(lambda x: x in our['ID'],acvs['ID']))
+    acvs = acvs[present]
 
 
-## effectively need to do a join operation
-## we have (periods,miras) and (asas_periods,asas_names) 
-## join on miras / asas_names
-# periods
-# fname = "../data/ACVS.1.1"
-# asas_names = np.loadtxt(fname,usecols=(0,),skiprows=2,dtype='S20')
-# asas_periods = np.loadtxt(fname,usecols=(1,),skiprows=2)
-# mirasIDs = mirasIDs[0:10]
-# contained = np.array(map(lambda x: x in mirasIDs,list(asas_names)))
+    ## now sort both our and acvs by star name
+    our.sort(order='ID')
+    acvs.sort(order='ID')
 
 
+    ## often get same period, sometimes off by multiple of 2
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(our['period'],acvs['period'],'o',color="gray",alpha=.5)
+    ax.set_xlabel('Our LS')
+    ax.set_ylabel('ACVS LS')
+    plt.savefig("diag_figs/ourLS_versus_ACVSls.pdf")
+    plt.close()
 
 
-
+    
