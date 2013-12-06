@@ -9,19 +9,38 @@
 import numpy as np
 from scipy.special import erf
 
-def log_likelihood_fixed_w(sin_c,cos_c,sin_uc,cos_uc,f,e,A,B,C,mu_b,v_b):
+def nll_fixedB_no_cens(params,mu_b,v_b,sin_c,cos_c,sin_uc,cos_uc,f,e):
+    cens = False
+    A = params[0]
+    B = params[1]
+    C = params[2]
+    ll = log_likelihood_fixed_w(A,B,C,mu_b,v_b,sin_c,cos_c,sin_uc,cos_uc,f,e,cens)
+    return -ll
+
+
+
+def log_likelihood_fixed_w(A,B,C,mu_b,v_b,sin_c,cos_c,sin_uc,cos_uc,f,e,cens):
     ## get likelihood of censored observations
-    mu_c = pred2mu(sin_c,cos_c,A,B,C)
-    muf_c = mag2flux(mu_c)
-    llc = log_likelihood_censored(muf_c,mu_b,v_b)
-    print llc
+    ## if not censored obs, skip this (TODO: find nicer way to implement)
+    if sin_c.size > 0 and cens:
+        mu_c = pred2mu(sin_c,cos_c,A,B,C)
+        muf_c = mag2flux(mu_c)
+        llc = log_likelihood_censored(muf_c,mu_b,v_b)
+        print llc
+    else:
+        llc = 0.
 
     ## get likelihood of uncensored observations
     mu = pred2mu(sin_uc,cos_uc,A,B,C)
     muf = mag2flux(mu)
-    ll = log_likelihood_uncensored(muf,f,e,mu_b,v_b)
+    ll = log_likelihood_uncensored(muf,f,e,mu_b,v_b,cens)
     print ll
-    return llc + ll
+
+    ## TODO:
+    ## penalize likelihood for very small values of 
+    ## mu_b or v_b, this will prevent having to specify bounds
+    ## for algorithm
+    return ll + llc
 
 ## given times and freq, creates predictors that will be used in
 ## likelihood, don't do this inside likelihood at fixed freq, b/c
@@ -37,12 +56,14 @@ def pred2mu(sins,coss,A,B,C):
 def log_likelihood_censored(mu,mu_b,v_b):
     return np.sum(np.log(1 - gaussian_cdf(mu,mu_b,v_b)))
 
-def log_likelihood_uncensored(mu,f,e,mu_b,v_b):
+def log_likelihood_uncensored(mu,f,e,mu_b,v_b,cens):
     ## log-likelihood not censored
-    llnc = np.sum(np.log(gaussian_cdf(mu,mu_b,v_b)))
+    llnc = 0
+    if cens:
+        llnc = np.sum(np.log(gaussian_cdf(mu,mu_b,v_b)))
     ## log-likelihood of getting particular flux
     llf = np.sum(log_gaussian_pdf(mu,f,e))
-    return llnc + llf
+    return llf + llnc
 
 
 oneoversqrt2 = 1./np.sqrt(2)
