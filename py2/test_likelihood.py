@@ -53,12 +53,8 @@ plt.close()
 ## CHECK: run model without computing censoring probabilities
 ## this may return different results than Lomb Scargle
 ## because least squares are fit in flux space, not mag
-## space
-
-
-
-
-
+## space. however parameter estimtes should look reasonable.
+## a plot of the best fit is made
 def plot_fits(mira):
     ## get the data
     star = np.loadtxt(mira,
@@ -133,7 +129,8 @@ def plot_fits(mira):
                     color='orange',linewidth=1.5)
     line2 = ax.plot(times_pred,likelihood.mag2flux(mags_pred_cens),
             color='blue',linewidth=1.5)
-    ax.plot(ctimes,np.min(-mags)*np.ones(ctimes.size),'o',color='red')
+    ax.plot(ctimes,likelihood.mag2flux(np.max(mags))*np.ones(ctimes.size),
+            'o',color='red')
     ax.plot(times,likelihood.mag2flux(mags),'o',color="gray",alpha=.5)
     ax.axis([xmin,xmax,ax.axis()[2],ax.axis()[3]])
     ax.set_ylabel("Flux")
